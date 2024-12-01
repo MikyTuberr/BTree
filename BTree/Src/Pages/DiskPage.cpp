@@ -1,0 +1,86 @@
+#include "DiskPage.h"
+
+const std::size_t DiskPage::GetPageSize() const
+{
+    return this->pageSize;
+}
+
+const std::size_t DiskPage::GetRecordsNumber() const
+{
+    return this->recordsNumber;
+}
+
+const std::size_t DiskPage::GetPageNumber() const
+{
+    return this->pageNumber;
+}
+
+const std::vector<DiskRecord> DiskPage::GetRecords() const
+{
+    return this->records;
+}
+
+const std::vector<DiskRecord> DiskPage::GetFixedRecords() const
+{
+    std::vector<DiskRecord> fixedRecords = this->records;
+
+    while (fixedRecords.size() < recordsNumber) {
+        fixedRecords.push_back(DiskRecord());
+    }
+
+    return fixedRecords;
+}
+
+const void DiskPage::SetRecords(const std::vector<DiskRecord> diskRecords)
+{
+    this->records = diskRecords;
+}
+
+bool DiskPage::InsertRecord(const DiskRecord diskRecord)
+{
+    if (!this->isOverflow()) {
+        this->records.push_back(diskRecord);
+        return true;
+    }
+    return false;
+}
+
+DiskRecord* DiskPage::FindRecordById(std::size_t id)
+{
+    std::size_t left = 0;
+    std::size_t right = records.size() - 1;
+
+    while (left <= right)
+    {
+        std::size_t mid = left + (right - left) / 2;
+        std::size_t midId = records[mid].GetId();
+
+        if (midId == id)
+        {
+            return &records[mid];
+        }
+        else if (midId < id)
+        {
+            left = mid + 1;
+        }
+        else
+        {
+            right = mid - 1;
+        }
+    }
+
+    return nullptr;
+}
+
+bool DiskPage::isOverflow() const
+{
+    return this->records.size() == this->recordsNumber;
+}
+
+void DiskPage::Print() const
+{
+    std::cout << "Disk page: " << this->pageNumber << " contents:\n";
+    for (const auto& record : this->records) {
+        record.Print();
+    }
+}
