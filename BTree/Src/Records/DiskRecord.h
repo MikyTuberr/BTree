@@ -6,13 +6,17 @@
 class DiskRecord
 {
 public:
-    DiskRecord(double a = 0, double b = 0, double alpha = 0, std::size_t key = 0)
-        : sideA(a), sideB(b), angleAlpha(alpha), id(key)
+    DiskRecord()
+        : sideA(0), sideB(0), angleAlpha(0), id(0) {}
+
+    DiskRecord(double a, double b, double alpha)
+        : sideA(a), sideB(b), angleAlpha(alpha)
     {
-        if (id == 0) {
-            id = GenerateRandomId();
-        }
+        id = GenerateRandomId();
     }
+
+    DiskRecord(double a, double b, double alpha, std::size_t key)
+        : sideA(a), sideB(b), angleAlpha(alpha), id(key) {}
 
     std::size_t GetId() const;
 

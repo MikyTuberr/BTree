@@ -19,10 +19,10 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
         // krok 2
         TreePage treePage = treePageManager.ReadPage(currentPageNumber);
         if (!treePage.isOverflow()) {
-            // TODO: treePageManager warstwa wyznaczenia prawego dziecka: treePageManager.InsertRecord(TreeRecord());
+            treePageManager.InsertRecord(TreeRecord(diskRecordId, currentPageNumber), treePage);
             diskPageManager.InsertRecordToBuffer(diskRecord);
+            return true;
         }
-
 
         // krok 3
         // TODO: compensation
@@ -44,7 +44,7 @@ std::pair<TreeRecord*, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
     std::size_t currentPageNumber = this->treePageManager.GetRoot().GetPageNumber();
 
     if (currentPageNumber == UINT_MAX) {
-        throw std::runtime_error("Record not found: tree is empty.");
+        return std::make_pair(nullptr, 0);
     }
 
     while (currentPageNumber != UINT_MAX)

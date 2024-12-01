@@ -10,16 +10,16 @@ public:
 		parentPageNumber(0), records(std::vector<TreeRecord>()) {}
 
 	TreePage(std::size_t treePageSize, std::size_t treeRecordsNumber, std::size_t treePageNumber)
-		: pageSize(treeRecordsNumber), recordsNumber(treePageSize), pageNumber(treePageNumber),
+		: pageSize(treePageSize), recordsNumber(treeRecordsNumber), pageNumber(treePageNumber),
 		parentPageNumber(0), records(std::vector<TreeRecord>()) {}
 
 	TreePage(std::size_t treePageSize, std::size_t treeRecordsNumber, std::size_t treePageNumber,
 		std::size_t parentPageNumber, std::size_t leftChildPageNumber, std::vector<TreeRecord>& treeRecords)
-		: pageSize(treeRecordsNumber), recordsNumber(treePageSize), pageNumber(treePageNumber),
+		: pageSize(treePageSize), recordsNumber(treeRecordsNumber), pageNumber(treePageNumber),
 		parentPageNumber(parentPageNumber), headLeftChildPageNumber(leftChildPageNumber), records(treeRecords) {}
 
 	bool InsertRecord(const TreeRecord treeRecord);
-	TreeRecord* FindRecordById(std::size_t id) const;
+	TreeRecord* FindRecordById(std::size_t id);
 
 	bool isOverflow() const;
 

@@ -9,7 +9,7 @@ bool TreePage::InsertRecord(const TreeRecord treeRecord)
     return false;
 }
 
-TreeRecord* TreePage::FindRecordById(std::size_t id) const
+TreeRecord* TreePage::FindRecordById(std::size_t id)
 {
     std::size_t left = 0;
     std::size_t right = records.size() - 1;

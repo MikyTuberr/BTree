@@ -1,8 +1,6 @@
 #pragma once
 #include "./Records/DiskRecord.h"
-#//include "../Data/Record/TreeRecord.h"
 #include "./Pages/DiskPage.h"
-//#include "../Data/Page/TreePage.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -50,7 +48,7 @@ inline std::vector<Record> RandomAccessFile::ReadRecords(const std::streampos& c
 		file.read(reinterpret_cast<char*>(&record), sizeof(record));
 		if (file.eof()) {
 			std::cout << "EOF DETECTED! \n";
-			break;
+			return std::vector<Record>();
 		}
 		records.push_back(std::move(record));
 	}
@@ -71,7 +69,7 @@ inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::Read
 
 		if (file.eof()) {
 			std::cerr << "EOF detected while reading parameters!\n";
-			break;
+			return std::make_pair(std::vector<Record>(), std::vector<Param>());
 		}
 
 		std::cout << "Odczytano parametr: " << paramRead << std::endl;
@@ -84,13 +82,13 @@ inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::Read
 
 		if (file.eof()) {
 			std::cerr << "EOF detected while reading records!\n";
-			break;
+			return std::make_pair(std::vector<Record>(), std::vector<Param>());
 		}
 
 		records.push_back(std::move(record));
 	}
 
-	return records;
+	return std::make_pair(records, params);
 }
 
 template<typename Record>

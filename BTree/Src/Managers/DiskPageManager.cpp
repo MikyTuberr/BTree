@@ -46,6 +46,11 @@ DiskRecord* DiskPageManager::FindRecordInBufferById(const std::size_t& id)
 	return this->bufferPage.FindRecordById(id);
 }
 
+DiskRecord* DiskPageManager::FindRecordInPageById(DiskPage& page, const std::size_t& id)
+{
+	return page.FindRecordById(id);
+}
+
 const std::streampos DiskPageManager::CalculateCursor(const std::size_t& pageNumber) const
 {
 	return pageNumber * this->bufferPage.GetPageSize();

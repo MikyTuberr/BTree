@@ -19,7 +19,7 @@ public:
 
 	void InsertRecordToBuffer(const DiskRecord diskRecord);
 	DiskRecord* FindRecordInBufferById(const std::size_t& id);
-	DiskRecord* FindRecordInPageById(const DiskPage& page, const std::size_t& id);
+	DiskRecord* FindRecordInPageById(DiskPage& page, const std::size_t& id);
 private:
 	const std::streampos CalculateCursor(const std::size_t& pageNumber) const;
 

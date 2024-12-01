@@ -8,18 +8,17 @@ class TreePageManager
 {
 public:
 	TreePageManager(PageManagerConfig config, std::size_t paramsNumber)
-		: root(config.pageSize, config.pageRecordsNumber, 0), 
+		: root(config.pageSize, config.pageRecordsNumber, UINT_MAX), 
 		randomAccessFile(config.filename, config.openmode), paramsNumber(paramsNumber) {}
 
 
 	TreePage ReadPage(std::size_t pageNumber);
-	template <typename Param>
-	bool WritePage(const TreePage& treePage, const std::vector<Param>& params);
+	bool WritePage(const TreePage& treePage);
 
 	TreePage GetRoot() const;
 
-	bool InsertRecord(const TreeRecord treeRecord);
-	TreeRecord* FindRecordInPageById(const TreePage& page, const std::size_t& id) const;
+	bool InsertRecord(TreeRecord treeRecord, TreePage treePage);
+	TreeRecord* FindRecordInPageById(TreePage& page, const std::size_t& id);
 private:
 	const std::streampos CalculateCursor(const std::size_t& pageNumber) const;
 
@@ -29,14 +28,4 @@ private:
 	std::size_t pagesCounter = 0;
 };
 
-template<typename Param>
-inline bool TreePageManager::WritePage(const TreePage& treePage, const std::vector<Param>& params)
-{
-	if (treePage.GetPageNumber() == this->pagesCounter) {
-		this->pagesCounter++;
-	}
 
-	std::streampos cursor = this->CalculateCursor(treePage.GetPageNumber());
-	std::vector<TreeRecord> fixedRecords = treePage.GetFixedRecords();
-	return this->randomAccessFile.WriteRecords(fixedRecords, cursor, std::ios_base::beg, params);
-}
