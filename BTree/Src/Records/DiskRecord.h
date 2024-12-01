@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 #include <ctime>
+#include "../Type.h"
 
 class DiskRecord
 {

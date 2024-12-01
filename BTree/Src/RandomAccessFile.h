@@ -72,7 +72,8 @@ inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::Read
 			return std::make_pair(std::vector<Record>(), std::vector<Param>());
 		}
 
-		std::cout << "Odczytano parametr: " << paramRead << std::endl;
+		//std::cout << "Odczytano parametr: " << paramRead << std::endl;
+		params.push_back(std::move(paramRead));
 	}
 
 	std::vector<Record> records;

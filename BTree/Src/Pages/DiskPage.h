@@ -6,7 +6,8 @@ class DiskPage
 {
 public:
 	DiskPage()
-		: pageSize(0), recordsNumber(0), pageNumber(0), records(std::vector<DiskRecord>()) {}
+		: pageSize(0), recordsNumber(0), pageNumber(NULLPTR), 
+		records(std::vector<DiskRecord>()) {}
 
 	DiskPage(std::size_t pageSize, std::size_t recordsNumber, std::size_t diskPageNumber)
 		: pageSize(pageSize), recordsNumber(recordsNumber), pageNumber(diskPageNumber), 

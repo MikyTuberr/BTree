@@ -1,15 +1,18 @@
 #pragma once
 #include <iostream>
+#include "../Type.h"
 
 class TreeRecord
 {
 public:
 	TreeRecord()
-		: diskRecordId(UINT_MAX), diskRecordPageNumber(UINT_MAX), treeRightChildNumber(UINT_MAX) {
+		: diskRecordId(NULLPTR), diskRecordPageNumber(NULLPTR), 
+		treeRightChildNumber(NULLPTR) {
 	}
 
 	TreeRecord(std::size_t id, std::size_t recordPageNumber)
-		: diskRecordId(id), diskRecordPageNumber(recordPageNumber), treeRightChildNumber(UINT_MAX) {
+		: diskRecordId(id), diskRecordPageNumber(recordPageNumber), 
+		treeRightChildNumber(NULLPTR) {
 	}
 
 	TreeRecord(std::size_t id, std::size_t recordPageNumber, std::size_t childPageNumber)

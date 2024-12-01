@@ -2,26 +2,33 @@
 
 bool TreePage::InsertRecord(const TreeRecord treeRecord)
 {
-    if (!this->isOverflow()) {
-        this->records.push_back(treeRecord);
-        return true;
+    if (this->isOverflow()) {
+        return false;
     }
-    return false;
+
+    auto it = std::lower_bound(records.begin(), records.end(), treeRecord,
+        [](const TreeRecord& a, const TreeRecord& b) {
+            return a.GetId() < b.GetId();
+        });
+
+    records.insert(it, treeRecord);
+
+    return true;
 }
 
-TreeRecord* TreePage::FindRecordById(std::size_t id)
+TreeRecord TreePage::FindRecordById(std::size_t id)
 {
-    std::size_t left = 0;
-    std::size_t right = records.size() - 1;
+    int left = 0;
+    int right = int(records.size() - 1);
 
     while (left <= right)
     {
-        std::size_t mid = left + (right - left) / 2;
+        int mid = left + (right - left) / 2;
         std::size_t midId = records[mid].GetId();
 
         if (midId == id)
         {
-            return &records[mid];
+            return records[mid];
         }
         else if (midId < id)
         {
@@ -33,9 +40,128 @@ TreeRecord* TreePage::FindRecordById(std::size_t id)
         }
     }
 
-    return nullptr;
+    return TreeRecord();
 }
 
+std::pair<std::size_t, TreeRecord> TreePage::FindRightSiblingNumberById(std::size_t id)
+{
+    int left = 0;
+    int right = int(records.size() - 1);
+
+    while (left <= right)
+    {
+        int mid = left + (right - left) / 2;
+        std::size_t midId = records[mid].GetId();
+
+        if (midId == id)
+        {
+            if (mid + 1 < records.size()) {
+                std::size_t rightSiblingNumber = GetRightChildPageNumberById(mid + 1);
+                TreeRecord separatorRecord = records[mid];
+                return { rightSiblingNumber, separatorRecord };
+            }
+            else {
+                std::size_t rightSiblingNumber = GetRightChildPageNumberById(mid);
+                TreeRecord separatorRecord = records[mid];
+                return { rightSiblingNumber, separatorRecord };
+            }
+        }
+        else if (midId < id)
+        {
+            left = mid + 1;
+        }
+        else
+        {
+            right = mid - 1;
+        }
+    }
+
+    return { NULLPTR, TreeRecord() };
+}
+
+TreeRecord TreePage::PopTail()
+{
+    if (records.empty()) {
+        throw std::out_of_range("Attempted to pop from an empty container");
+    }
+
+    TreeRecord tail = records.back();
+    records.pop_back();
+
+    return tail;
+}
+
+TreeRecord TreePage::PopHead()
+{
+    if (records.empty()) {
+        throw std::out_of_range("Attempted to pop from an empty container");
+    }
+
+    TreeRecord head = records.front();
+    records.erase(records.begin());
+
+    return head;
+}
+
+bool TreePage::ReplaceRecord(TreeRecord recordToReplace, TreeRecord newRecord)
+{
+    for (auto it = records.begin(); it != records.end(); ++it) {
+        if (it->GetId() == recordToReplace.GetId()) {
+            *it = newRecord;
+
+            if (it != records.begin() && (it - 1)->GetId() > newRecord.GetId()) {
+                std::sort(records.begin(), records.end(), [](const TreeRecord& a, const TreeRecord& b) {
+                    return a.GetId() < b.GetId();
+                    });
+            }
+            else if (it + 1 != records.end() && (it + 1)->GetId() < newRecord.GetId()) {
+                std::sort(records.begin(), records.end(), [](const TreeRecord& a, const TreeRecord& b) {
+                    return a.GetId() < b.GetId();
+                    });
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::pair<std::size_t, TreeRecord> TreePage::FindLeftSiblingNumberById(std::size_t id)
+{
+    int left = 0;
+    int right = int(records.size() - 1);
+
+    while (left <= right)
+    {
+        int mid = left + (right - left) / 2;
+        std::size_t midId = records[mid].GetId();
+
+        if (midId == id)
+        {
+            if (mid > 0) {
+                std::size_t leftSiblingNumber = GetRightChildPageNumberById(mid - 1);
+                TreeRecord separatorRecord = records[mid - 1];
+                return { leftSiblingNumber, separatorRecord };
+            }
+            else {
+                std::size_t leftSiblingNumber = GetHeadLeftChildPageNumber();
+                TreeRecord separatorRecord = records[mid];
+                return { leftSiblingNumber, separatorRecord };
+            }
+        }
+        else if (midId < id)
+        {
+            left = mid + 1;
+        }
+        else
+        {
+            right = mid - 1;
+        }
+    }
+
+    return { NULLPTR, TreeRecord() };
+}
 bool TreePage::isOverflow() const
 {
     return this->records.size() == this->recordsNumber;
@@ -63,7 +189,10 @@ const std::size_t TreePage::GetParentPageNumber() const
 
 const std::size_t TreePage::GetRightChildPageNumberById(std::size_t index)
 {
-    return this->records[index].GetTreeRightChildNumber();
+    if (index < records.size()) {
+        return this->records[index].GetTreeRightChildNumber();
+    }
+    return NULLPTR;
 }
 
 const std::size_t TreePage::GetHeadLeftChildPageNumber() const
@@ -87,6 +216,14 @@ const std::vector<TreeRecord> TreePage::GetFixedRecords() const
     return fixedRecords;
 }
 
+const TreeRecord TreePage::GetHead() const
+{
+    if (records.size() > 0) {
+        return this->records[0];
+    }
+    return TreeRecord();
+}
+
 const void TreePage::SetRecords(const std::vector<TreeRecord> treeRecords)
 {
     this->records = treeRecords;
@@ -97,11 +234,38 @@ const void TreePage::SetHeadLeftChildPageNumber(const std::size_t treePageNumber
     this->headLeftChildPageNumber = treePageNumber;
 }
 
+const void TreePage::SetParentPageNumber(const std::size_t parentPageNumber)
+{
+    this->parentPageNumber = parentPageNumber;
+}
+
 void TreePage::Print() const
 {
-    std::cout << "Tree page: " << this->pageNumber << "\n";
-    std::cout << "  Parent: " << this->parentPageNumber << "\n";
-    std::cout << "  Content: \n";
+    std::cout << "  Tree page: ";
+    if (this->pageNumber == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->pageNumber;
+    }
+
+    std::cout << "  Head left child: ";
+    if (this->headLeftChildPageNumber == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->headLeftChildPageNumber;
+    }
+
+    std::cout << "  Parent: ";
+    if (this->parentPageNumber == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->parentPageNumber;
+    }
+
+    std::cout << "\n  Content: \n";
     for (const auto& record : this->records) {
         record.Print();
     }

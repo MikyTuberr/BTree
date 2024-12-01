@@ -17,8 +17,29 @@ void TreeRecord::SetTreeRightChildNumber(const std::size_t childTreePageNumber)
 
 void TreeRecord::Print() const
 {
-    std::cout << "Tree record: \n";
-    std::cout << "  Id: " << this->diskRecordId << "\n";
-    std::cout << "  Disk record page number: " << this->diskRecordPageNumber << "\n";
-    std::cout << "  Right child tree page number: " << this->treeRightChildNumber << "\n";
+    std::cout << "    Id: ";
+    if (this->diskRecordId == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->diskRecordId;
+    }
+
+    std::cout << "  Disk page number: ";
+    if (this->diskRecordPageNumber == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->diskRecordPageNumber;
+    }
+
+    std::cout << "  Right child: ";
+    if (this->treeRightChildNumber == NULLPTR) {
+        std::cout << "NULL";
+    }
+    else {
+        std::cout << this->treeRightChildNumber;
+    }
+
+    std::cout << "\n";
 }

@@ -137,6 +137,7 @@
     <ClInclude Include="Src\Pages\TreePage.h" />
     <ClInclude Include="Src\Records\TreeRecord.h" />
     <ClInclude Include="Src\Managers\TreePageManager.h" />
+    <ClInclude Include="Src\Type.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\BTree.cpp" />

@@ -45,6 +45,9 @@
     <ClInclude Include="Src\Managers\PageManagerConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Records\DiskRecord.cpp">

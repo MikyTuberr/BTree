@@ -47,12 +47,12 @@ bool DiskPage::InsertRecord(const DiskRecord diskRecord)
 
 DiskRecord* DiskPage::FindRecordById(std::size_t id)
 {
-    std::size_t left = 0;
-    std::size_t right = records.size() - 1;
+    int left = 0;
+    int right = int(records.size() - 1);
 
     while (left <= right)
     {
-        std::size_t mid = left + (right - left) / 2;
+        int mid = left + (right - left) / 2;
         std::size_t midId = records[mid].GetId();
 
         if (midId == id)

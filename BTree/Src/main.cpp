@@ -4,6 +4,26 @@
 #include "BTree.h"
 #include <fstream>
 
+size_t readSizeTFromFile(const std::string& filename) {
+	std::ifstream inFile(filename, std::ios::binary);
+	if (!inFile) {
+		throw std::runtime_error("Cannot open file for reading");
+	}
+	size_t number;
+	inFile.read(reinterpret_cast<char*>(&number), sizeof(size_t));
+	inFile.close();
+	return number;
+}
+
+void saveSizeTToFile(const std::string& filename, size_t number) {
+	std::ofstream outFile(filename, std::ios::binary);
+	if (!outFile) {
+		throw std::runtime_error("Cannot open file for writing");
+	}
+	outFile.write(reinterpret_cast<const char*>(&number), sizeof(size_t));
+	outFile.close();
+}
+
 int main() {
 	try {
 		// todo: menu z opcjami (jakiœ handler inputu)
@@ -17,56 +37,36 @@ int main() {
 		std::ios_base::openmode diskOpenmode = std::ios::in | std::ios::out | std::ios::binary;
 		std::ios_base::openmode treeOpenmode = std::ios::in | std::ios::out | std::ios::binary;
 
-		/*DiskPageManager diskPageManager(DISK_PAGE_SIZE, DISK_PAGE_SIZE / DISK_RECORD_SIZE, diskFilename, diskOpenmode);
-
-		for (int i = 0; i < DISK_PAGE_SIZE / DISK_RECORD_SIZE + 1; i++) {
-			diskPageManager.InsertRecordToBuffer(DiskRecord(i, i, i));
-		}
-
-		DiskPage diskPage = diskPageManager.ReadPage(0);
-		diskPage.Print();
-		diskPage = diskPageManager.ReadPage(1);
-		diskPage.Print();
-
-		diskPage.InsertRecord(DiskRecord(2130, 432243, 3424));
-		diskPageManager.WritePage(diskPage);
-
-		diskPage = diskPageManager.ReadPage(0);
-		diskPage.Print();
-		diskPage = diskPageManager.ReadPage(1);
-		diskPage.Print();*/
-
-		/*TreePageManager treePageManager(TREE_PAGE_SIZE, TREE_PAGE_SIZE / TREE_RECORD_SIZE, treeFilename, treeOpenmode, TREE_PAGE_PARAMS_NUMBER);
-
-		for (int i = 0; i < TREE_PAGE_SIZE / TREE_RECORD_SIZE + 1; i++) {
-			treePageManager.InsertRecord(TreeRecord(i, i, i));
-
-
-		TreePage treePage = treePageManager.ReadPage(0);
-		treePage.Print();
-		treePage = treePageManager.ReadPage(1);
-		treePage.Print();
-
-		treePage.InsertRecord(DiskRecord(2130, 432243, 3424));
-		treePageManager.WritePage(treePage);
-
-		treePage = treePageManager.ReadPage(0);
-		treePage.Print();
-		treePage = treePageManager.ReadPage(1);
-		treePage.Print();*/
-
 		PageManagerConfig diskPageManagerConfig = PageManagerConfig(DISK_PAGE_SIZE, 
 			DISK_PAGE_SIZE / DISK_RECORD_SIZE, diskFilename, diskOpenmode);
 
 		PageManagerConfig treePageManagerConfig = PageManagerConfig(TREE_PAGE_SIZE,
 			TREE_PAGE_SIZE / TREE_RECORD_SIZE, treeFilename, treeOpenmode);
 
-		BTree bTree(diskPageManagerConfig, treePageManagerConfig, TREE_PAGE_PARAMS_NUMBER);
 
-		for (int i = 0; i < DISK_PAGE_SIZE / DISK_RECORD_SIZE + 1; i++) {
+		std::string rootFilename = "./Src/Data/rootTest.bin";
+
+		//std::size_t rootNumber = readSizeTFromFile(rootFilename);
+
+		BTree bTree(diskPageManagerConfig, treePageManagerConfig, NULLPTR,
+			TREE_PAGE_PARAMS_NUMBER);
+
+		for (int i = 0; i < 100; i++) {
+			if (i % 10 == 1) {
+				std::cout << "============================\n";
+				bTree.Print();
+			}
 			bTree.InsertRecord(DiskRecord(i, i, i, i));
 		}
-		bTree.FindRecord(3).first->Print();
+
+		/*for (int i = 0; i < DISK_PAGE_SIZE / DISK_RECORD_SIZE + 1; i++) {
+			TreeRecord foundRecord = bTree.FindRecord(i);
+			foundRecord.Print();
+		}*/
+
+		//bTree.Print();
+
+		//saveSizeTToFile(rootFilename, bTree.GetRootNumber());
 	}
 	catch (const std::runtime_error& e) {
 		std::cerr << e.what();
