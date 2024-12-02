@@ -34,18 +34,11 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
         }
 
         // krok 6
+        std::size_t rootNumberBeforeSplit = this->treePageManager.GetRootNumber();
         recordToInsert = this->SplitPage(currentPage, recordToInsert);
         diskPageManager.InsertRecordToBuffer(diskRecord);
 
-        if (currentPageNumber == this->treePageManager.GetRootNumber()) {
-            TreePage newRoot = treePageManager.CreateNewPage();
-
-            newRoot.SetHeadLeftChildPageNumber(currentPage.GetPageNumber());
-
-            newRoot.SetRecords({ recordToInsert });
-
-            treePageManager.WritePage(newRoot);
-            treePageManager.SetRootNumber(newRoot.GetPageNumber());
+        if (currentPageNumber == rootNumberBeforeSplit) {
             return true;
         }
 
@@ -218,9 +211,20 @@ TreeRecord BTree::SplitPage(TreePage pageToSplit, TreeRecord recordToInsert)
     //newPage.SetHeadLeftChildPageNumber();
     std::size_t parentPageNumber = pageToSplit.GetParentPageNumber();
     if (parentPageNumber == NULLPTR) {
-        parentPageNumber = pageToSplit.GetPageNumber();
-        pageToSplit.SetParentPageNumber(parentPageNumber);
-        newPage.SetParentPageNumber(parentPageNumber);
+
+        TreePage newRoot = treePageManager.CreateNewPage();
+
+        newRoot.SetHeadLeftChildPageNumber(pageToSplit.GetPageNumber());
+
+        medianRecord.SetTreeRightChildNumber(newPage.GetPageNumber());
+        newRoot.SetRecords({ medianRecord });
+
+        std::size_t newRootPageNumber = newRoot.GetPageNumber();
+
+        treePageManager.WritePage(newRoot);
+        treePageManager.SetRootNumber(newRootPageNumber);
+        pageToSplit.SetParentPageNumber(newRootPageNumber);
+        newPage.SetParentPageNumber(newRootPageNumber);
     }
     else {
         newPage.SetParentPageNumber(parentPageNumber);
@@ -235,7 +239,9 @@ TreeRecord BTree::SplitPage(TreePage pageToSplit, TreeRecord recordToInsert)
         rightRecords.push_back(recordToInsert);
     }
 
-    medianRecord.SetTreeRightChildNumber(newPage.GetPageNumber());
+    if (parentPageNumber != NULLPTR) {
+        medianRecord.SetTreeRightChildNumber(newPage.GetPageNumber());
+    }
 
     //pageToSplit.SetParentPageNumber()
 

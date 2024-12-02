@@ -14,3 +14,4 @@ constexpr std::size_t d = TREE_PAGE_SIZE / TREE_RECORD_SIZE;
 //constexpr std::size_t MAX_TREE_PAGE_KEYS_NUMBER = 2 * d;
 
 constexpr std::size_t TREE_PAGE_PARAMS_NUMBER = 2;
+constexpr std::size_t TREE_PAGE_PARAMS_SIZE = 2 * sizeof(std::size_t);

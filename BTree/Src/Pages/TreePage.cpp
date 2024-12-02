@@ -241,13 +241,13 @@ const void TreePage::SetParentPageNumber(const std::size_t parentPageNumber)
 
 void TreePage::Print() const
 {
-    std::cout << "  Tree page: ";
-    if (this->pageNumber == NULLPTR) {
-        std::cout << "NULL";
-    }
-    else {
-        std::cout << this->pageNumber;
-    }
+    //std::cout << "  Tree page: ";
+    //if (this->pageNumber == NULLPTR) {
+        //std::cout << "NULL";
+    //}
+    //else {
+       // std::cout << this->pageNumber;
+    //}
 
     std::cout << "  Head left child: ";
     if (this->headLeftChildPageNumber == NULLPTR) {

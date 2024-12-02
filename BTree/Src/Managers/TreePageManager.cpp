@@ -66,5 +66,5 @@ TreeRecord TreePageManager::FindRecordInPageById(TreePage& page, const std::size
 
 const std::streampos TreePageManager::CalculateCursor(const std::size_t& pageNumber) const
 {
-	return pageNumber * this->pageSize;
+	return pageNumber * (this->pageSize + TREE_PAGE_PARAMS_SIZE);
 }
