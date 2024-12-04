@@ -18,6 +18,7 @@ std::size_t DiskRecord::GenerateRandomId()
 {
     static std::random_device rd;
     static std::mt19937 generator(rd());
-    std::uniform_int_distribution<std::size_t> distribution(1, NULLPTR);
-    return distribution(generator);
+    std::uniform_int_distribution<std::size_t> distribution(1, 100000);
+    std::size_t randomId = distribution(generator) % 100000;
+    return randomId;
 }

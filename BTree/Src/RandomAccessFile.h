@@ -16,6 +16,8 @@ public:
 		}
 	}
 
+	// TO NIE JEST ZAPIS BLOKOWY ANI ODCZY KURWA, MUSISZ NIESTETY ODCZYTAÆ CHARY I POTEM JE Z¯UTOWAÆ, DO ZROBIENIA, DO ZMIANY!
+
 	template <typename Record>
 	std::vector<Record> ReadRecords(const std::streampos& cursor, const std::ios_base::seekdir& direction,
 		const std::size_t& numberOfRecordsToRead);

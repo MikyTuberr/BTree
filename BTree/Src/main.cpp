@@ -52,12 +52,12 @@ int main() {
 			TREE_PAGE_PARAMS_NUMBER);
 
 		for (int i = 0; i < 100; i++) {
-			if (i % 10 == 1) {
-				std::cout << "============================\n";
-				bTree.Print();
-			}
-			bTree.InsertRecord(DiskRecord(i, i, i, i));
+
+			bTree.InsertRecord(DiskRecord(i, i, i));
 		}
+
+		std::cout << "============================\n";
+		bTree.Print();
 
 		/*for (int i = 0; i < DISK_PAGE_SIZE / DISK_RECORD_SIZE + 1; i++) {
 			TreeRecord foundRecord = bTree.FindRecord(i);

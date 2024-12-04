@@ -45,38 +45,18 @@ TreeRecord TreePage::FindRecordById(std::size_t id)
 
 std::pair<std::size_t, TreeRecord> TreePage::FindRightSiblingNumberById(std::size_t id)
 {
-    int left = 0;
-    int right = int(records.size() - 1);
-
-    while (left <= right)
-    {
-        int mid = left + (right - left) / 2;
-        std::size_t midId = records[mid].GetId();
-
-        if (midId == id)
-        {
-            if (mid + 1 < records.size()) {
-                std::size_t rightSiblingNumber = GetRightChildPageNumberById(mid + 1);
-                TreeRecord separatorRecord = records[mid];
-                return { rightSiblingNumber, separatorRecord };
-            }
-            else {
-                std::size_t rightSiblingNumber = GetRightChildPageNumberById(mid);
-                TreeRecord separatorRecord = records[mid];
-                return { rightSiblingNumber, separatorRecord };
-            }
-        }
-        else if (midId < id)
-        {
-            left = mid + 1;
-        }
-        else
-        {
-            right = mid - 1;
+    for (std::size_t i = 0; i < this->records.size(); ++i) {
+        if (id < this->records[i].GetId()) {
+            std::size_t rightSiblingNumber = this->GetRightChildPageNumberById(i);
+            TreeRecord separatorRecord = this->records[i]; // chyba git
+            return { rightSiblingNumber, separatorRecord };
         }
     }
 
-    return { NULLPTR, TreeRecord() };
+    std::size_t lastRightChildPageNumber = this->GetRightChildPageNumberById(this->records.size() - 1);
+    TreeRecord lastSeparator = this->records.back();
+
+    return { lastRightChildPageNumber, lastSeparator };
 }
 
 TreeRecord TreePage::PopTail()
@@ -129,38 +109,26 @@ bool TreePage::ReplaceRecord(TreeRecord recordToReplace, TreeRecord newRecord)
 
 std::pair<std::size_t, TreeRecord> TreePage::FindLeftSiblingNumberById(std::size_t id)
 {
-    int left = 0;
-    int right = int(records.size() - 1);
-
-    while (left <= right)
-    {
-        int mid = left + (right - left) / 2;
-        std::size_t midId = records[mid].GetId();
-
-        if (midId == id)
-        {
-            if (mid > 0) {
-                std::size_t leftSiblingNumber = GetRightChildPageNumberById(mid - 1);
-                TreeRecord separatorRecord = records[mid - 1];
+    for (std::size_t i = 0; i < this->records.size(); ++i) {
+        if (id < this->records[i].GetId()) {
+            if (i > 0) {
+                std::size_t leftSiblingNumber = this->GetRightChildPageNumberById(i-1);
+                TreeRecord separatorRecord = this->records[i]; // CHYBA GIT, ALE POTENCJALNY PROBLEM MOZE BYC
                 return { leftSiblingNumber, separatorRecord };
             }
             else {
-                std::size_t leftSiblingNumber = GetHeadLeftChildPageNumber();
-                TreeRecord separatorRecord = records[mid];
+                std::size_t leftSiblingNumber = this->GetHeadLeftChildPageNumber();
+                TreeRecord separatorRecord = this->records[i];
                 return { leftSiblingNumber, separatorRecord };
             }
-        }
-        else if (midId < id)
-        {
-            left = mid + 1;
-        }
-        else
-        {
-            right = mid - 1;
+
         }
     }
 
-    return { NULLPTR, TreeRecord() };
+    std::size_t headLeftChildPageNumber = this->GetHeadLeftChildPageNumber();
+    TreeRecord separatorRecord = this->records.front();
+
+    return { headLeftChildPageNumber, separatorRecord };
 }
 bool TreePage::isOverflow() const
 {
