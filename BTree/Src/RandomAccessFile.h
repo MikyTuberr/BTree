@@ -16,8 +16,6 @@ public:
 		}
 	}
 
-	// TO NIE JEST ZAPIS BLOKOWY ANI ODCZY KURWA, MUSISZ NIESTETY ODCZYTAÆ CHARY I POTEM JE Z¯UTOWAÆ, DO ZROBIENIA, DO ZMIANY!
-
 	template <typename Record>
 	std::vector<Record> ReadRecords(const std::streampos& cursor, const std::ios_base::seekdir& direction,
 		const std::size_t& numberOfRecordsToRead);
@@ -34,6 +32,9 @@ public:
 		const std::vector<Param>& params);
 
 private:
+	bool readBuffer(std::vector<char>& buffer, size_t bytesToRead);
+	bool writeBuffer(const std::vector<char>& buffer);
+
 	std::fstream file;
 };
 
@@ -43,18 +44,15 @@ inline std::vector<Record> RandomAccessFile::ReadRecords(const std::streampos& c
 {
 	file.seekg(cursor, direction);
 
-	std::vector<Record> records;
+	std::vector<Record> records(numberOfRecordsToRead);
+	std::vector<char> buffer(numberOfRecordsToRead * sizeof(Record));
 
-	for (std::size_t i = 0; i < numberOfRecordsToRead; ++i) {
-		Record record;
-		file.read(reinterpret_cast<char*>(&record), sizeof(record));
-		if (file.eof()) {
-			std::cout << "EOF DETECTED! \n";
-			return std::vector<Record>();
-		}
-		records.push_back(std::move(record));
+	if (!this->readBuffer(buffer, buffer.size())) {
+		std::cerr << "Error while reading records!\n";
+		return {};
 	}
 
+	std::memcpy(records.data(), buffer.data(), buffer.size());
 	return records;
 }
 
@@ -64,32 +62,25 @@ inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::Read
 {
 	file.seekg(cursor, direction);
 
-	std::vector<Param> params;
-	for (std::size_t i = 0; i < numberOfParamsToRead; ++i) {
-		Param paramRead;
-		file.read(reinterpret_cast<char*>(&paramRead), sizeof(Param));
+	std::vector<Param> params(numberOfParamsToRead);
+	std::vector<char> paramBuffer(numberOfParamsToRead * sizeof(Param));
 
-		if (file.eof()) {
-			std::cerr << "EOF detected while reading parameters!\n";
-			return std::make_pair(std::vector<Record>(), std::vector<Param>());
-		}
-
-		//std::cout << "Odczytano parametr: " << paramRead << std::endl;
-		params.push_back(std::move(paramRead));
+	if (!this->readBuffer(paramBuffer, paramBuffer.size())) {
+		std::cerr << "Error while reading parameters!\n";
+		return { {}, {} };
 	}
 
-	std::vector<Record> records;
-	for (std::size_t i = 0; i < numberOfRecordsToRead; ++i) {
-		Record record;
-		file.read(reinterpret_cast<char*>(&record), sizeof(Record));
+	std::memcpy(params.data(), paramBuffer.data(), paramBuffer.size());
 
-		if (file.eof()) {
-			std::cerr << "EOF detected while reading records!\n";
-			return std::make_pair(std::vector<Record>(), std::vector<Param>());
-		}
+	std::vector<Record> records(numberOfRecordsToRead);
+	std::vector<char> recordBuffer(numberOfRecordsToRead * sizeof(Record));
 
-		records.push_back(std::move(record));
+	if (!this->readBuffer(recordBuffer, recordBuffer.size())) {
+		std::cerr << "Error while reading records!\n";
+		return { {}, {} };
 	}
+
+	std::memcpy(records.data(), recordBuffer.data(), recordBuffer.size());
 
 	return std::make_pair(records, params);
 }
@@ -106,18 +97,20 @@ inline bool RandomAccessFile::WriteRecords(const std::vector<Record>& records, c
 {
 	file.seekp(cursor, direction);
 
-	for (const auto& param : params) {
-		file.write(reinterpret_cast<const char*>(&param), sizeof(param));
-		if (!file) {
+	if (!params.empty()) {
+		std::vector<char> paramBuffer(params.size() * sizeof(Param));
+		std::memcpy(paramBuffer.data(), params.data(), paramBuffer.size());
+		if (!this->writeBuffer(paramBuffer)) {
+			std::cerr << "Error while writing parameters!\n";
 			return false;
 		}
 	}
 
-	for (const auto& record : records) {
-		file.write(reinterpret_cast<const char*>(&record), sizeof(record));
-		if (!file) {
-			return false;
-		}
+	std::vector<char> recordBuffer(records.size() * sizeof(Record));
+	std::memcpy(recordBuffer.data(), records.data(), recordBuffer.size());
+	if (!this->writeBuffer(recordBuffer)) {
+		std::cerr << "Error while writing records!\n";
+		return false;
 	}
 
 	return true;

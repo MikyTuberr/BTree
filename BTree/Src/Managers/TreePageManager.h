@@ -3,6 +3,7 @@
 #include "../Pages/TreePage.h"
 #include <string>
 #include "PageManagerConfig.h"
+#include <unordered_map>
 
 class TreePageManager
 {
@@ -17,24 +18,23 @@ public:
 		}
 	}
 
+	//TODO: zapisywanie w pliku wskaznika na root przy wywo³aniu dekstruktora i wczytywanie przy konstruktorze!
 
-	//TODO: zapisywanie wskaznika na root i WCZYTYWANIE! ~TreePageManager();
-
+	TreePage* ReadPageWithCache(std::size_t pageNumber);
 	TreePage ReadPage(std::size_t pageNumber);
 	bool WritePage(const TreePage& treePage);
+	bool FlushPageCache();
+
 	TreePage CreateNewPage();
 
-	TreePage GetRoot();
 	const std::size_t GetRootNumber() const;
 
 	const void SetRootNumber(std::size_t rootNumber);
-
-	bool InsertRecord(TreeRecord treeRecord, TreePage treePage);
-	TreeRecord FindRecordInPageById(TreePage& page, const std::size_t& id);
 private:
 	const std::streampos CalculateCursor(const std::size_t& pageNumber) const;
 
 	RandomAccessFile randomAccessFile;
+	std::unordered_map<std::size_t, TreePage> pageCache;
 	std::size_t rootNumber;
 	std::size_t pageSize;
 	std::size_t pageRecordsNumber;

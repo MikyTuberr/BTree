@@ -1,5 +1,36 @@
 #include "TreePageManager.h"
 
+TreePage* TreePageManager::ReadPageWithCache(std::size_t pageNumber)
+{
+    auto it = this->pageCache.find(pageNumber);
+    if (it != this->pageCache.end()) {
+        return &it->second;
+    }
+
+    std::streampos cursor = this->CalculateCursor(pageNumber);
+
+    std::pair<std::vector<TreeRecord>, std::vector<std::size_t>> pair =
+        this->randomAccessFile.ReadRecords<TreeRecord, std::size_t>(
+            cursor, std::ios_base::beg, this->pageRecordsNumber, this->paramsNumber);
+
+    std::vector<TreeRecord> records = pair.first;
+    std::vector<std::size_t> params = pair.second;
+
+    std::vector<TreeRecord> filteredRecords;
+
+    for (const auto& record : records) {
+        if (record.GetId() != NULLPTR) {
+            filteredRecords.push_back(record);
+        }
+    }
+
+    TreePage page = TreePage(this->pageSize, this->pageRecordsNumber, pageNumber, params[0], params[1], filteredRecords);
+
+    this->pageCache[pageNumber] = page;
+
+    return &this->pageCache[pageNumber];
+}
+
 TreePage TreePageManager::ReadPage(std::size_t pageNumber)
 {
     std::streampos cursor = this->CalculateCursor(pageNumber);
@@ -19,9 +50,9 @@ TreePage TreePageManager::ReadPage(std::size_t pageNumber)
         }
     }
 
-	TreePage page = TreePage(this->pageSize, this->pageRecordsNumber, pageNumber, params[0], params[1], filteredRecords);
+    TreePage page = TreePage(this->pageSize, this->pageRecordsNumber, pageNumber, params[0], params[1], filteredRecords);
 
-	return page;
+    return page;
 }
 
 bool TreePageManager::WritePage(const TreePage& treePage)
@@ -32,15 +63,21 @@ bool TreePageManager::WritePage(const TreePage& treePage)
     return this->randomAccessFile.WriteRecords(fixedRecords, cursor, std::ios_base::beg, params);
 }
 
+bool TreePageManager::FlushPageCache()
+{
+    for (auto& [pageNumber, page] : pageCache) {
+        if (!WritePage(page)) {
+            return false;
+        }
+    }
+    pageCache.clear();
+    return true;
+}
+
 TreePage TreePageManager::CreateNewPage()
 {
     this->pagesCounter++;
     return TreePage(this->pageSize, this->pageRecordsNumber, this->pagesCounter);
-}
-
-TreePage TreePageManager::GetRoot()
-{
-	return this->ReadPage(rootNumber);
 }
 
 const std::size_t TreePageManager::GetRootNumber() const
@@ -51,17 +88,6 @@ const std::size_t TreePageManager::GetRootNumber() const
 const void TreePageManager::SetRootNumber(std::size_t rootNumber)
 {
     this->rootNumber = rootNumber;
-}
-
-bool TreePageManager::InsertRecord(TreeRecord treeRecord, TreePage treePage)
-{
-    treePage.InsertRecord(treeRecord);
-    return this->WritePage(treePage);
-}
-
-TreeRecord TreePageManager::FindRecordInPageById(TreePage& page, const std::size_t& id)
-{
-	return page.FindRecordById(id);
 }
 
 const std::streampos TreePageManager::CalculateCursor(const std::size_t& pageNumber) const

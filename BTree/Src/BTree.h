@@ -14,15 +14,15 @@ public:
 
 	bool InsertRecord(DiskRecord diskRecord);
 	TreeRecord FindRecord(std::size_t treeRecordId);
-	std::size_t GetLeaf(std::size_t treeRecordId);
-	bool TryCompensation(TreePage leafPage, TreeRecord recordToInsert);
-	std::pair<SiblingType, std::pair<std::size_t, TreeRecord>> DetermineSibling(TreePage currentPage, TreePage parentPage);
-	TreeRecord SplitPage(TreePage pageToSplit, TreeRecord recordToInsert);
-
-	std::size_t GetRootNumber();
 
 	void Print();
 private:
+
+	std::size_t GetLeaf(std::size_t treeRecordId);
+	bool TryCompensation(TreePage* currentPage, TreeRecord recordToInsert);
+	std::pair<SiblingType, std::pair<std::size_t, TreeRecord>> DetermineSibling(TreePage* currentPage, TreePage* parentPage);
+	TreeRecord SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert);
+
 	DiskPageManager diskPageManager;
 	TreePageManager treePageManager;
 

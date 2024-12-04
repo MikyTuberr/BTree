@@ -51,20 +51,12 @@ int main() {
 		BTree bTree(diskPageManagerConfig, treePageManagerConfig, NULLPTR,
 			TREE_PAGE_PARAMS_NUMBER);
 
-		for (int i = 0; i < 100; i++) {
-
+		for (int i = 0; i < 20; i++) {
 			bTree.InsertRecord(DiskRecord(i, i, i));
 		}
 
 		std::cout << "============================\n";
 		bTree.Print();
-
-		/*for (int i = 0; i < DISK_PAGE_SIZE / DISK_RECORD_SIZE + 1; i++) {
-			TreeRecord foundRecord = bTree.FindRecord(i);
-			foundRecord.Print();
-		}*/
-
-		//bTree.Print();
 
 		//saveSizeTToFile(rootFilename, bTree.GetRootNumber());
 	}
