@@ -52,11 +52,12 @@ int main() {
 			TREE_PAGE_PARAMS_NUMBER);
 
 		for (int i = 0; i < 20; i++) {
-			bTree.InsertRecord(DiskRecord(i, i, i));
+			DiskRecord record = DiskRecord(i, i, i);
+			bTree.InsertRecord(record);
+			std::cout << "\n\n============================ " << i << " ============================\n"; 
+			std::cout << "Inserting: " << record.GetId() << "\n\n";
+			bTree.Print();
 		}
-
-		std::cout << "============================\n";
-		bTree.Print();
 
 		//saveSizeTToFile(rootFilename, bTree.GetRootNumber());
 	}

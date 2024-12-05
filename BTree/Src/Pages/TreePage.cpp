@@ -2,9 +2,9 @@
 
 bool TreePage::InsertRecord(const TreeRecord treeRecord)
 {
-    if (this->isOverflow()) {
-        return false;
-    }
+    //if (this->isOverflow()) {
+        //return false;
+    //}
 
     auto it = std::lower_bound(records.begin(), records.end(), treeRecord,
         [](const TreeRecord& a, const TreeRecord& b) {

@@ -5,6 +5,8 @@
 #include "./Managers/DiskPageManager.h"
 #include "./Managers/TreePageManager.h"
 
+enum SiblingType { LEFT_SIBLING, RIGHT_SIBLING, NO_SIBLING };
+
 class BTree
 {
 public:

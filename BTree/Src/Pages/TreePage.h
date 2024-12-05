@@ -19,6 +19,7 @@ public:
 		parentPageNumber(parentPageNumber), headLeftChildPageNumber(leftChildPageNumber), records(treeRecords) {}
 
 	bool InsertRecord(const TreeRecord treeRecord);
+	void RemoveRecord(const TreeRecord treeRecord);
 	TreeRecord FindRecordById(std::size_t id);
 	std::pair<std::size_t, TreeRecord> FindLeftSiblingNumberById(std::size_t id);
 	std::pair<std::size_t, TreeRecord> FindRightSiblingNumberById(std::size_t id);

@@ -2,8 +2,6 @@
 #include "./Records/DiskRecord.h"
 #include "./Records/TreeRecord.h"
 
-enum SiblingType { LEFT_SIBLING, RIGHT_SIBLING, NO_SIBLING };
-
 constexpr std::size_t d = 2;
 
 constexpr std::size_t DISK_RECORD_SIZE = sizeof(DiskRecord);
