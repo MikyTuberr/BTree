@@ -1,11 +1,5 @@
 #include "DiskPageManager.h"
 
-DiskPageManager::~DiskPageManager()
-{
-	if (this->bufferPage.GetRecords().size() > 0) {
-		this->WritePage(this->bufferPage);
-	}
-}
 
 DiskPage DiskPageManager::ReadPage(std::size_t pageNumber)
 {
@@ -24,6 +18,8 @@ DiskPage DiskPageManager::ReadPage(std::size_t pageNumber)
 	DiskPage page = DiskPage(this->bufferPage.GetPageSize(), this->bufferPage.GetRecordsNumber(), 
 		pageNumber, records);
 
+	this->pagesReadCounter++;
+
 	return page;
 }
 
@@ -31,7 +27,11 @@ bool DiskPageManager::WritePage(const DiskPage& diskPage)
 {
 	std::streampos cursor = this->CalculateCursor(diskPage.GetPageNumber());
 	std::vector<DiskRecord> fixedRecords = diskPage.GetFixedRecords();
-	return this->randomAccessFile.WriteRecords(fixedRecords, cursor, std::ios_base::beg);
+	if (this->randomAccessFile.WriteRecords(fixedRecords, cursor, std::ios_base::beg)) {
+		this->pagesWrittenCounter++;
+		return true;
+	}
+	return false;
 }
 
 void DiskPageManager::InsertRecordToBuffer(const DiskRecord diskRecord)
@@ -60,7 +60,17 @@ const std::size_t DiskPageManager::GetPagesCounter() const
 	return this->pagesCounter;
 }
 
+const std::size_t DiskPageManager::GetPagesReadCounter() const
+{
+	return this->pagesReadCounter;
+}
+
+const std::size_t DiskPageManager::GetPagesWrittenCounter() const
+{
+	return this->pagesWrittenCounter;
+}
+
 const std::streampos DiskPageManager::CalculateCursor(const std::size_t& pageNumber) const
 {
-	return pageNumber * this->bufferPage.GetPageSize();
+	return (pageNumber * this->bufferPage.GetPageSize()) + DISK_FILE_OFFSET;
 }

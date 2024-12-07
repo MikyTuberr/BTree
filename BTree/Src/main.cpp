@@ -4,26 +4,6 @@
 #include "BTree.h"
 #include <fstream>
 
-size_t readSizeTFromFile(const std::string& filename) {
-	std::ifstream inFile(filename, std::ios::binary);
-	if (!inFile) {
-		throw std::runtime_error("Cannot open file for reading");
-	}
-	size_t number;
-	inFile.read(reinterpret_cast<char*>(&number), sizeof(size_t));
-	inFile.close();
-	return number;
-}
-
-void saveSizeTToFile(const std::string& filename, size_t number) {
-	std::ofstream outFile(filename, std::ios::binary);
-	if (!outFile) {
-		throw std::runtime_error("Cannot open file for writing");
-	}
-	outFile.write(reinterpret_cast<const char*>(&number), sizeof(size_t));
-	outFile.close();
-}
-
 int main() {
 	try {
 		// todo: menu z opcjami (jakiœ handler inputu)
@@ -43,23 +23,15 @@ int main() {
 		PageManagerConfig treePageManagerConfig = PageManagerConfig(TREE_PAGE_SIZE,
 			TREE_PAGE_SIZE / TREE_RECORD_SIZE, treeFilename, treeOpenmode);
 
-
-		std::string rootFilename = "./Src/Data/rootTest.bin";
-
-		//std::size_t rootNumber = readSizeTFromFile(rootFilename);
-
 		BTree bTree(diskPageManagerConfig, treePageManagerConfig, NULLPTR,
 			TREE_PAGE_PARAMS_NUMBER);
 
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 5; i++) {
 			DiskRecord record = DiskRecord(i, i, i);
 			bTree.InsertRecord(record);
-			std::cout << "\n============================ " << i << " ============================\n"; 
-			std::cout << "Inserting: " << record.GetId() << "\n\n";
-			bTree.Print();
 		}
+		bTree.Print();
 
-		//saveSizeTToFile(rootFilename, bTree.GetRootNumber());
 	}
 	catch (const std::runtime_error& e) {
 		std::cerr << e.what();

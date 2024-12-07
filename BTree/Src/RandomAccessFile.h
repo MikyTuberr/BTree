@@ -31,6 +31,8 @@ public:
 	bool WriteRecords(const std::vector<Record>& records, const std::streampos& cursor, const std::ios_base::seekdir& direction,
 		const std::vector<Param>& params);
 
+	bool isFileEmpty();
+
 private:
 	bool readBuffer(std::vector<char>& buffer, size_t bytesToRead);
 	bool writeBuffer(const std::vector<char>& buffer);

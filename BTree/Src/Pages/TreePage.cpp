@@ -150,11 +150,6 @@ const std::size_t TreePage::GetPageNumber() const
     return this->pageNumber;
 }
 
-const std::size_t TreePage::GetParentPageNumber() const
-{
-    return this->parentPageNumber;
-}
-
 const std::size_t TreePage::GetRightChildPageNumberById(std::size_t index)
 {
     if (index < records.size()) {
@@ -202,11 +197,6 @@ const void TreePage::SetHeadLeftChildPageNumber(const std::size_t treePageNumber
     this->headLeftChildPageNumber = treePageNumber;
 }
 
-const void TreePage::SetParentPageNumber(const std::size_t parentPageNumber)
-{
-    this->parentPageNumber = parentPageNumber;
-}
-
 void TreePage::Print() const
 {
     //std::cout << "  Tree page: ";
@@ -223,14 +213,6 @@ void TreePage::Print() const
     }
     else {
         std::cout << this->headLeftChildPageNumber;
-    }
-
-    std::cout << "  Parent: ";
-    if (this->parentPageNumber == NULLPTR) {
-        std::cout << "NULL";
-    }
-    else {
-        std::cout << this->parentPageNumber;
     }
 
     std::cout << "\n  Content: \n";

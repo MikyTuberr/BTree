@@ -12,13 +12,25 @@ public:
 		: pageSize(config.pageSize), rootNumber(rootNumber), pageRecordsNumber(config.pageRecordsNumber), 
 		randomAccessFile(config.filename, config.openmode), paramsNumber(paramsNumber) 
 	{
-		if (rootNumber == NULLPTR) {
+		if (this->randomAccessFile.isFileEmpty()) {
 			this->rootNumber = 0;
-			this->WritePage(TreePage(pageSize, pageRecordsNumber, this->rootNumber));
+			this->pagesCounter = 0;
+			//this->randomAccessFile.WriteRecords<std::size_t>({ this->rootNumber, this->pagesCounter }, 0, std::ios::beg);
+			TreePage root = TreePage(this->pageSize, this->pageRecordsNumber, this->rootNumber);
+			this->WritePage(root);
+			pagesWrittenCounter--;
+		}
+		else {
+			auto vec = this->randomAccessFile.ReadRecords<std::size_t>(0, std::ios::beg, TREE_FILE_PARAMS_NUMBER);
+			this->rootNumber = vec[0];
+			this->pagesCounter = vec[1];
 		}
 	}
 
-	//TODO: zapisywanie w pliku wskaznika na root przy wywo³aniu dekstruktora i wczytywanie przy konstruktorze!
+	~TreePageManager() 
+	{
+		this->randomAccessFile.WriteRecords<std::size_t>({ this->rootNumber, this->pagesCounter }, 0, std::ios::beg);
+	}
 
 	TreePage* ReadPageWithCache(std::size_t pageNumber);
 	TreePage ReadPage(std::size_t pageNumber);
@@ -26,8 +38,11 @@ public:
 	bool FlushPageCache();
 
 	TreePage CreateNewPage();
+	std::size_t FindParentNumber(std::size_t childNumber);
 
 	const std::size_t GetRootNumber() const;
+	const std::size_t GetPagesReadCounter() const;
+	const std::size_t GetPagesWrittenCounter() const;
 
 	const void SetRootNumber(std::size_t rootNumber);
 private:
@@ -40,7 +55,9 @@ private:
 	std::size_t pageSize;
 	std::size_t pageRecordsNumber;
 	std::size_t paramsNumber;
-	std::size_t pagesCounter = 0;
+	std::size_t pagesCounter;
+	std::size_t pagesReadCounter = 0;
+	std::size_t pagesWrittenCounter = 0;
 };
 
 

@@ -1,5 +1,11 @@
 #include "RandomAccessFile.h"
 
+bool RandomAccessFile::isFileEmpty()
+{
+    file.seekg(0, std::ios::end);
+    return file.tellg() == 0;
+}
+
 bool RandomAccessFile::readBuffer(std::vector<char>& buffer, size_t bytesToRead)
 {
 	buffer.resize(bytesToRead);

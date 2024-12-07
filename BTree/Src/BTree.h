@@ -37,5 +37,4 @@ private:
 
 	DiskPageManager diskPageManager;
 	TreePageManager treePageManager;
-
 };
