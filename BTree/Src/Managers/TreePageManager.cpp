@@ -27,6 +27,7 @@ TreePage* TreePageManager::ReadPageWithCache(std::size_t pageNumber)
     TreePage page = TreePage(this->pageSize, this->pageRecordsNumber, pageNumber, params[0], params[1], filteredRecords);
 
     this->pageCache[pageNumber] = page;
+    this->pageCacheOrder.push_back(page.GetPageNumber());
 
     return &this->pageCache[pageNumber];
 }
@@ -71,6 +72,7 @@ bool TreePageManager::FlushPageCache()
         }
     }
     pageCache.clear();
+    pageCacheOrder.clear();
     return true;
 }
 

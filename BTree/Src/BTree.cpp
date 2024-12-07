@@ -4,6 +4,8 @@
 //
 
 
+// TODO: CHYBA TRZEBA ZREZYGNOWAÆ Z PRZECHOWYWANIA RODZICA W NODE'ACH
+// Chyba mo¿na wyci¹gn¹æ to z cache'a
 bool BTree::InsertRecord(DiskRecord diskRecord)
 {
     std::size_t diskRecordId = diskRecord.GetId();

@@ -35,6 +35,7 @@ private:
 
 	RandomAccessFile randomAccessFile;
 	std::unordered_map<std::size_t, TreePage> pageCache;
+	std::vector<std::size_t> pageCacheOrder;
 	std::size_t rootNumber;
 	std::size_t pageSize;
 	std::size_t pageRecordsNumber;
