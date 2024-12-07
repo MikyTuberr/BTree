@@ -51,8 +51,8 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
 
     this->treePageManager.FlushPageCache();
    
-    //std::cout << "TREE      R:" << this->treePageManager.GetPagesReadCounter() << "      W:" 
-        //<< this->treePageManager.GetPagesWrittenCounter() << "\n";
+    std::cout << "INSERT R:" << this->treePageManager.GetPagesReadCounter() << " W:" 
+        << this->treePageManager.GetPagesWrittenCounter() << "\n";
     //std::cout << "DISK      R:" << this->diskPageManager.GetPagesReadCounter() << "      W:" 
         //<< this->diskPageManager.GetPagesWrittenCounter() << "\n";
 
@@ -64,6 +64,8 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
     std::size_t currentPageNumber = this->treePageManager.GetRootNumber();
 
     if (currentPageNumber == NULLPTR) {
+        std::cout << "SEARCH R:" << this->treePageManager.GetPagesReadCounter() << " W:"
+            << this->treePageManager.GetPagesWrittenCounter() << "\n";
         return TreeRecord();
     }
 
@@ -73,6 +75,8 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
         TreeRecord foundRecord = currentPage->FindRecordById(treeRecordId);
 
         if (foundRecord.GetId() != NULLPTR) {
+            std::cout << "SEARCH R:" << this->treePageManager.GetPagesReadCounter() << " W:"
+                << this->treePageManager.GetPagesWrittenCounter() << "\n";
             return foundRecord;
         }
 
@@ -103,6 +107,8 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
         currentPageNumber = nextPageNumber;
     }
 
+    std::cout << "SEARCH R:" << this->treePageManager.GetPagesReadCounter() << " W:"
+        << this->treePageManager.GetPagesWrittenCounter() << "\n";
     return TreeRecord();
 }
 
@@ -168,7 +174,7 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
     TreePage* siblingPage = nullptr;
 
     for (const auto& sibli : siblings) {
-        TreePage* siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
+        siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
 
         if (!siblingPage->isOverflow()) {
             sibling = sibli;
@@ -176,7 +182,7 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
         }
     }
 
-    if (siblingPage == nullptr) {
+    if (sibling.siblingNumber == NULLPTR) {
         return false;
     }
 

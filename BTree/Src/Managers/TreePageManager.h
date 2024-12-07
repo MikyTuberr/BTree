@@ -8,8 +8,8 @@
 class TreePageManager
 {
 public:
-	TreePageManager(PageManagerConfig config, std::size_t rootNumber, std::size_t paramsNumber)
-		: pageSize(config.pageSize), rootNumber(rootNumber), pageRecordsNumber(config.pageRecordsNumber), 
+	TreePageManager(PageManagerConfig config, std::size_t paramsNumber)
+		: pageSize(config.pageSize), pageRecordsNumber(config.pageRecordsNumber), 
 		randomAccessFile(config.filename, config.openmode), paramsNumber(paramsNumber) 
 	{
 		if (this->randomAccessFile.isFileEmpty()) {

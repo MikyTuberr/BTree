@@ -2,7 +2,6 @@
 
 void DiskRecord::Print() const
 {
-    std::cout << "Disk record: " << this << "\n";
     std::cout << "  Id: " << this->id << "\n";
     std::cout << "  Side A: " << this->sideA << "\n";
     std::cout << "  Side B: " << this->sideB << "\n";

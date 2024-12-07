@@ -128,6 +128,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\InputHandler.h" />
     <ClInclude Include="Src\BTree.h" />
     <ClInclude Include="Src\Managers\PageManagerConfig.h" />
     <ClInclude Include="Src\RandomAccessFile.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="Src\Type.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\InputHandler.cpp" />
     <ClCompile Include="Src\BTree.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\RandomAccessFile.cpp" />

@@ -20,9 +20,8 @@ struct SiblingInfo
 class BTree
 {
 public:
-	BTree(PageManagerConfig diskConfig, PageManagerConfig treeConfig, std::size_t rootNumber, 
-		std::size_t paramsNumber)
-		: diskPageManager(diskConfig), treePageManager(treeConfig, rootNumber, paramsNumber) {}
+	BTree(PageManagerConfig diskConfig, PageManagerConfig treeConfig, std::size_t paramsNumber)
+		: diskPageManager(diskConfig), treePageManager(treeConfig, paramsNumber) {}
 
 	bool InsertRecord(DiskRecord diskRecord);
 	TreeRecord FindRecord(std::size_t treeRecordId);
