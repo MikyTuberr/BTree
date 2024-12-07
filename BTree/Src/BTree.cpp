@@ -156,74 +156,79 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
 
     TreePage* parentPage = treePageManager.ReadPageWithCache(parentPageNumber);
 
-    auto data = DetermineSibling(currentPage, parentPage);
+    std::vector<SiblingInfo> siblings = DetermineSibling(currentPage, parentPage);
 
-    SiblingType siblingType = data.first;
-    std::size_t siblingNumber = data.second.first;
-    TreeRecord separatorRecord = data.second.second;
-
-    if (siblingType == NO_SIBLING) {
+    if (siblings.empty()) {
         return false;
     }
 
-    TreePage* siblingPage = treePageManager.ReadPageWithCache(siblingNumber);
+    SiblingInfo sibling = SiblingInfo(TreeRecord(), RIGHT_SIBLING, NULLPTR);
+    TreePage* siblingPage = nullptr;
 
-    if (siblingPage->isOverflow()) {
+    for (const auto& sibli : siblings) {
+        TreePage* siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
+
+        if (!siblingPage->isOverflow()) {
+            sibling = sibli;
+            break;
+        }
+    }
+
+    if (siblingPage == nullptr) {
         return false;
     }
+
+    SiblingType siblingType = sibling.siblingType;
+    TreeRecord separatorRecord = sibling.separatorRecord;
+
 
     if (siblingType == LEFT_SIBLING) {
-        TreeRecord leafHead = currentPage->PopHead();
-        leafHead.SetTreeRightChildNumber(currentPage->GetPageNumber());
-
-        // TODO: recordToInsert wyszukanie nowych pointerów
-        recordToInsert.SetTreeRightChildNumber(NULLPTR);
         currentPage->InsertRecord(recordToInsert);
 
-        // TODO: leafTail.SetTreeRightChildNumber(separatorRecord.GetTreeRightChildNumber());
-        parentPage->ReplaceRecord(separatorRecord, leafHead);
+        TreeRecord head = currentPage->PopHead();
 
-        // TODO: separatorRecord wyszukanie nowych pointerów
-        separatorRecord.SetTreeRightChildNumber(NULLPTR);
+        std::size_t separatorRecordRightChildNumber = separatorRecord.GetTreeRightChildNumber();
+
+        separatorRecord.SetTreeRightChildNumber(currentPage->GetHeadLeftChildPageNumber());
+        currentPage->SetHeadLeftChildPageNumber(head.GetTreeRightChildNumber());
+        head.SetTreeRightChildNumber(separatorRecordRightChildNumber);
+
+        parentPage->ReplaceRecord(separatorRecord, head);
         siblingPage->InsertRecord(separatorRecord);
     }
     else {
-        TreeRecord leafTail = currentPage->PopTail();
-        leafTail.SetTreeRightChildNumber(currentPage->GetPageNumber());
-
-        // TODO: recordToInsert wyszukanie nowych pointerów
-        recordToInsert.SetTreeRightChildNumber(NULLPTR);
         currentPage->InsertRecord(recordToInsert);
 
-        leafTail.SetTreeRightChildNumber(separatorRecord.GetTreeRightChildNumber());
-        parentPage->ReplaceRecord(separatorRecord, leafTail);
+        TreeRecord tail = currentPage->PopTail();
 
-        // TODO: separatorRecord wyszukanie nowych pointerów
-        separatorRecord.SetTreeRightChildNumber(NULLPTR);
+        std::size_t separatorRecordRightChildNumber = separatorRecord.GetTreeRightChildNumber();
+
+        separatorRecord.SetTreeRightChildNumber(siblingPage->GetHeadLeftChildPageNumber());
+        siblingPage->SetHeadLeftChildPageNumber(tail.GetTreeRightChildNumber());
+        tail.SetTreeRightChildNumber(separatorRecordRightChildNumber);
+
+        parentPage->ReplaceRecord(separatorRecord, tail);
         siblingPage->InsertRecord(separatorRecord);
     }
-
-    //treePageManager.WritePage(currentPage);
-   // treePageManager.WritePage(siblingPage);
-   // treePageManager.WritePage(parentPage);
 
     return true;
 }
 
-std::pair<SiblingType, std::pair<std::size_t, TreeRecord>> BTree::DetermineSibling(TreePage* currentPage, TreePage* parentPage)
+std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* currentPage, TreePage* parentPage)
 {
     std::vector<TreeRecord> parentRecords = parentPage->GetRecords();
     std::size_t currentPageNumber = currentPage->GetPageNumber();
+    std::vector<SiblingInfo> siblings;
 
-    // TODO: Mo¿e chyba wyst¹piæ sytuacja, ¿e nie ma siblinga? Chyba po splicie lewy pointer tylko ale mo¿e byæ
     // TODO: za du¿e zag³êbienie jakiœ cleanup tu by siê przyda³
+
     for (std::size_t i = 0; i < parentRecords.size(); ++i) { 
         if ((i > 0 && parentPage->GetRightChildPageNumberById(i - 1) == currentPageNumber) ||
             (parentPage->GetHeadLeftChildPageNumber() == currentPageNumber))
         {
             std::size_t rightSiblingNumber = parentPage->GetRightChildPageNumberById(i);
             TreeRecord separatorRecord = parentRecords[i];
-            return { RIGHT_SIBLING, { rightSiblingNumber, separatorRecord } };
+            siblings.push_back(SiblingInfo(separatorRecord, RIGHT_SIBLING, rightSiblingNumber));
         }
 
         if (parentPage->GetRightChildPageNumberById(i) == currentPageNumber) {
@@ -231,19 +236,18 @@ std::pair<SiblingType, std::pair<std::size_t, TreeRecord>> BTree::DetermineSibli
                 std::size_t leftSiblingNumber = parentPage->GetHeadLeftChildPageNumber();
                 if (leftSiblingNumber != NULLPTR) {
                     TreeRecord separatorRecord = parentRecords[i];
-                    return { LEFT_SIBLING, { leftSiblingNumber, separatorRecord } };
+                    siblings.push_back(SiblingInfo(separatorRecord, LEFT_SIBLING, leftSiblingNumber));
                 }
-                return { NO_SIBLING, { NULLPTR, TreeRecord() } };
             }
             else {
                 std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
                 TreeRecord separatorRecord = parentRecords[i - 1];
-                return { LEFT_SIBLING, { leftSiblingNumber, separatorRecord } };
+                siblings.push_back(SiblingInfo(separatorRecord, LEFT_SIBLING, leftSiblingNumber));
             }
         }
     }
 
-    return { NO_SIBLING, { NULLPTR, TreeRecord() } };
+    return siblings;
 }
 
 
@@ -292,40 +296,67 @@ TreeRecord BTree::SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert)
     return medianRecord;
 }
 
-void BTree::Print()
-{
+void BTree::Print() {
     std::size_t rootNumber = this->treePageManager.GetRootNumber();
 
-    if (rootNumber == NULLPTR) {
+    if (rootNumber == NULLPTR) { // Upewnij siê, ¿e NULLPTR jest zdefiniowane, lub zast¹p nullptr.
         std::cout << "Drzewo jest puste." << std::endl;
         return;
     }
 
-    std::queue<std::size_t> pageQueue;
-    pageQueue.push(rootNumber);
+    // BFS kolejka
+    std::queue<std::pair<std::size_t, int>> pageQueue; // (Numer strony, Poziom drzewa)
+    pageQueue.push({ rootNumber, 0 });
+
+    int currentLevel = 0;
+    std::cout << "LEVEL " << currentLevel << ":\n";
 
     while (!pageQueue.empty()) {
-        std::size_t currentPageNumber = pageQueue.front();
+        auto [currentPageNumber, level] = pageQueue.front();
         pageQueue.pop();
 
+        // Jeœli poziom siê zmienia, przechodzimy do nowej linii
+        if (level > currentLevel) {
+            currentLevel = level;
+            std::cout << "\LEVEL " << currentLevel << ":\n";
+        }
+
+        // Pobranie strony i jej danych
         TreePage currentPage = this->treePageManager.ReadPage(currentPageNumber);
 
-        std::cout << "Page " << currentPage.GetPageNumber() << ":\n";
-        currentPage.Print();
+        // Budowanie wêz³a ASCII
+        std::ostringstream nodeBuilder;
 
-        std::vector<TreeRecord> records = currentPage.GetRecords();
-        if (!records.empty()) {
-            std::size_t leftChildPageNumber = currentPage.GetHeadLeftChildPageNumber();
-            if (leftChildPageNumber != NULLPTR) {
-                pageQueue.push(leftChildPageNumber);
-            }
+        // Nag³ówek wêz³a
+        nodeBuilder << "Node " << currentPage.GetPageNumber();
 
-            for (std::size_t i = 0; i < records.size(); ++i) {
-                std::size_t rightChildPageNumber = currentPage.GetRightChildPageNumberById(i);
-                if (rightChildPageNumber != NULLPTR) {
-                    pageQueue.push(rightChildPageNumber);
-                }
+        // Dane parenta i lewego dziecka
+        nodeBuilder << " |" << (currentPage.GetParentPageNumber() != NULLPTR ? std::to_string(currentPage.GetParentPageNumber()) : "*");
+        nodeBuilder << "|" << (currentPage.GetHeadLeftChildPageNumber() != NULLPTR ? std::to_string(currentPage.GetHeadLeftChildPageNumber()) : "*") << "|";
+
+        // Dane rekordów
+        const auto& records = currentPage.GetRecords();
+        for (const auto& record : records) {
+            nodeBuilder << " |" << (record.GetId() != NULLPTR ? std::to_string(record.GetId()) : "*");
+            //nodeBuilder << "|" << (record.GetDiskPageNumber() != NULLPTR ? std::to_string(record.GetDiskPageNumber()) : "*");
+            nodeBuilder << "|" << (record.GetTreeRightChildNumber() != NULLPTR ? std::to_string(record.GetTreeRightChildNumber()) : "*") << "|";
+        }
+
+        // Drukowanie zbudowanego wêz³a
+        std::cout << nodeBuilder.str() << "\n";
+
+        // Dodawanie dzieci do kolejki BFS
+        std::size_t leftChildPageNumber = currentPage.GetHeadLeftChildPageNumber();
+        if (leftChildPageNumber != NULLPTR) {
+            pageQueue.push({ leftChildPageNumber, level + 1 });
+        }
+
+        for (std::size_t i = 0; i < records.size(); ++i) {
+            std::size_t rightChildPageNumber = records[i].GetTreeRightChildNumber();
+            if (rightChildPageNumber != NULLPTR) {
+                pageQueue.push({ rightChildPageNumber, level + 1 });
             }
         }
     }
+    std::cout << "\n";
 }

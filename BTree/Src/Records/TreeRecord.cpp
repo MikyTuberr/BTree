@@ -10,6 +10,11 @@ std::size_t TreeRecord::GetTreeRightChildNumber() const
     return this->treeRightChildNumber;
 }
 
+std::size_t TreeRecord::GetDiskPageNumber() const
+{
+    return this->diskRecordPageNumber;
+}
+
 void TreeRecord::SetTreeRightChildNumber(const std::size_t childTreePageNumber)
 {
     this->treeRightChildNumber = childTreePageNumber;

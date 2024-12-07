@@ -21,6 +21,7 @@ public:
 
 	std::size_t GetId() const;
 	std::size_t GetTreeRightChildNumber() const;
+	std::size_t GetDiskPageNumber() const;
 
 	void SetTreeRightChildNumber(const std::size_t childTreePageNumber);
 

@@ -51,10 +51,10 @@ int main() {
 		BTree bTree(diskPageManagerConfig, treePageManagerConfig, NULLPTR,
 			TREE_PAGE_PARAMS_NUMBER);
 
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 50; i++) {
 			DiskRecord record = DiskRecord(i, i, i);
 			bTree.InsertRecord(record);
-			std::cout << "\n\n============================ " << i << " ============================\n"; 
+			std::cout << "\n============================ " << i << " ============================\n"; 
 			std::cout << "Inserting: " << record.GetId() << "\n\n";
 			bTree.Print();
 		}
