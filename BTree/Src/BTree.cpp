@@ -30,6 +30,7 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
         }
 
         // krok 4
+        // TODO: compensation has some exotic edge case
         if (this->TryCompensation(currentPage, recordToInsert)) {
             diskPageManager.InsertRecordToBuffer(diskRecord);
             // krok 5 
@@ -249,7 +250,7 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* currentPage, TreePage
             }
             else {
                 std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
-                TreeRecord separatorRecord = parentRecords[i - 1];
+                TreeRecord separatorRecord = parentRecords[i];
                 siblings.push_back(SiblingInfo(separatorRecord, LEFT_SIBLING, leftSiblingNumber));
             }
         }
