@@ -31,7 +31,7 @@ private:
 
 	std::size_t GetLeaf(std::size_t treeRecordId);
 	bool TryCompensation(TreePage* currentPage, TreeRecord recordToInsert);
-	std::vector<SiblingInfo> DetermineSibling(TreePage* currentPage, TreePage* parentPage);
+	std::vector<SiblingInfo> DetermineSibling(TreePage* parentPage, std::size_t currentPageNumber);
 	TreeRecord SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert);
 
 	DiskPageManager diskPageManager;

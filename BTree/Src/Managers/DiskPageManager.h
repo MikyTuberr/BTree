@@ -49,6 +49,7 @@ private:
 	RandomAccessFile randomAccessFile;
 	DiskPage bufferPage;
 	std::size_t pagesCounter;
+	// moze tez rekord counter zeby nie marnowac pamieci
 	std::size_t pagesReadCounter = 0;
 	std::size_t pagesWrittenCounter = 0;
 };

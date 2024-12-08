@@ -157,7 +157,8 @@ std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
 
 bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
 {
-    std::size_t parentPageNumber = this->treePageManager.FindParentNumber(currentPage->GetPageNumber());
+    std::size_t currentPageNumber = currentPage->GetPageNumber();
+    std::size_t parentPageNumber = this->treePageManager.FindParentNumber(currentPageNumber);
 
     if (parentPageNumber == NULLPTR) {
         return false;
@@ -165,7 +166,7 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
 
     TreePage* parentPage = treePageManager.ReadPageWithCache(parentPageNumber);
 
-    std::vector<SiblingInfo> siblings = DetermineSibling(currentPage, parentPage);
+    std::vector<SiblingInfo> siblings = DetermineSibling(parentPage, currentPageNumber);
 
     if (siblings.empty()) {
         return false;
@@ -223,37 +224,45 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
     return true;
 }
 
-std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* currentPage, TreePage* parentPage)
+std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size_t currentPageNumber)
 {
     std::vector<TreeRecord> parentRecords = parentPage->GetRecords();
-    std::size_t currentPageNumber = currentPage->GetPageNumber();
     std::vector<SiblingInfo> siblings;
 
-    // TODO: za du¿e zag³êbienie jakiœ cleanup tu by siê przyda³
+    // TODO: CLEANUP za du¿o wciêæ
 
     for (std::size_t i = 0; i < parentRecords.size(); ++i) { 
-        if ((i > 0 && parentPage->GetRightChildPageNumberById(i - 1) == currentPageNumber) ||
-            (parentPage->GetHeadLeftChildPageNumber() == currentPageNumber))
-        {
-            std::size_t rightSiblingNumber = parentPage->GetRightChildPageNumberById(i);
-            TreeRecord separatorRecord = parentRecords[i];
-            siblings.push_back(SiblingInfo(separatorRecord, RIGHT_SIBLING, rightSiblingNumber));
-        }
 
-        if (parentPage->GetRightChildPageNumberById(i) == currentPageNumber) {
+        std::size_t rightSiblingNumber = parentPage->GetRightChildPageNumberById(i);
+
+        if (i == 0) {
+            if (parentPage->GetHeadLeftChildPageNumber() == currentPageNumber) {
+                siblings.push_back(SiblingInfo(parentRecords[i], RIGHT_SIBLING, rightSiblingNumber));
+                return siblings;
+            }
+            else if (rightSiblingNumber == currentPageNumber) {
+                siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
+            }
+        }
+        else if (i == parentRecords.size() - 1 && rightSiblingNumber == currentPageNumber) {
+            std::size_t leftSiblingNumber;
             if (i == 0) {
-                std::size_t leftSiblingNumber = parentPage->GetHeadLeftChildPageNumber();
-                if (leftSiblingNumber != NULLPTR) {
-                    TreeRecord separatorRecord = parentRecords[i];
-                    siblings.push_back(SiblingInfo(separatorRecord, LEFT_SIBLING, leftSiblingNumber));
-                }
+                leftSiblingNumber = parentPage->GetHeadLeftChildPageNumber();
             }
             else {
-                std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
-                TreeRecord separatorRecord = parentRecords[i];
-                siblings.push_back(SiblingInfo(separatorRecord, LEFT_SIBLING, leftSiblingNumber));
+                leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
             }
+            siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, leftSiblingNumber));
+            return siblings;
         }
+        else if (rightSiblingNumber == currentPageNumber) {
+            siblings.push_back(SiblingInfo(parentRecords[i], RIGHT_SIBLING, rightSiblingNumber));
+
+            std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
+            siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, leftSiblingNumber));
+            return siblings;
+        }
+
     }
 
     return siblings;
