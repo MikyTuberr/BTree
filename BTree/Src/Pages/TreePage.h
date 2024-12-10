@@ -32,8 +32,11 @@ public:
 	const std::size_t GetRecordsNumber() const;
 	const std::size_t GetPageNumber() const;
 	const std::size_t GetHeadLeftChildPageNumber() const;
-	const std::size_t GetRightChildPageNumberById(std::size_t index);
+	const std::size_t GetRightChildPageNumberById(const std::size_t index);
 	const std::vector<TreeRecord> GetRecords() const;
+	const std::vector<TreeRecord> GetRecordsByIndex(const std::size_t index, const bool direction);
+	const std::size_t GetRecordsSize() const;
+	const TreeRecord GetRecordByIndex(const std::size_t i) const;
 	const std::vector<TreeRecord> GetFixedRecords() const;
 	const TreeRecord GetHead() const;
 

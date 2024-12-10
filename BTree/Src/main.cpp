@@ -8,9 +8,6 @@
 int main() {
 	try {
 		// todo: mo¿e wpisywanie nazwy pliku z klawy?
-		// todo: wczytywanie danych z pliku testowego
-		// todo: prze³¹czanie trybów programu
-		// todo: przegl¹danie pliku z danymi
 
 		std::string diskFilename = "./Src/Data/diskTest.bin";
 		std::string treeFilename = "./Src/Data/treeTest.bin";

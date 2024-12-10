@@ -75,7 +75,9 @@ void InputHandler::run()
         std::cout << "1. Search record\n";
         std::cout << "2. Insert record\n";
         std::cout << "3. Print tree\n";
-        std::cout << "4. Exit\n";
+        std::cout << "4. Print disk file\n";
+        std::cout << "5. Process commands from file\n";
+        std::cout << "6. Exit\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -102,6 +104,15 @@ void InputHandler::run()
             bTree.Print();
         }
         else if (choice == 4) {
+            bTree.PrintDiskFile();
+        }
+        else if (choice == 5) {
+            std::string filename;
+            std::cout << "Enter the filename: ";
+            std::cin >> filename;
+            this->processFileCommands(filename);
+        }
+        else if (choice == 6) {
             std::cout << "Exiting program.\n";
             break;
         }
@@ -112,4 +123,62 @@ void InputHandler::run()
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
+}
+
+void InputHandler::processFileCommands(const std::string& filename) {
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << "\n";
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream stream(line);
+        std::string command;
+        stream >> command;
+
+        if (command == "insert") {
+            int id, a, b, alpha;
+            stream >> id >> a >> b >> alpha;
+            if (!stream.fail()) {
+                DiskRecord record(id, a, b, alpha);
+                if (bTree.InsertRecord(record)) {
+                    std::cout << "Inserted record: ";
+                }
+                else {
+                    std::cout << "Record already exists: ";
+                }
+                record.Print();
+                std::cout << "\n";
+            }
+            else {
+                std::cerr << "Error: Invalid insert command format in line: " << line << "\n";
+            }
+        }
+        else if (command == "search") {
+            int id;
+            stream >> id;
+            if (!stream.fail()) {
+                TreeRecord result = bTree.FindRecord(id);
+                if (result.GetId() != NULLPTR) {
+                    std::cout << "Record found: ";
+                    result.Print();
+                    std::cout << "\n";
+                }
+                else {
+                    std::cout << "Record not found for ID: " << id << "\n";
+                }
+            }
+            else {
+                std::cerr << "Error: Invalid search command format in line: " << line << "\n";
+            }
+        }
+        else {
+            std::cerr << "Error: Unknown command in line: " << line << "\n";
+        }
+    }
+
+    file.close();
 }

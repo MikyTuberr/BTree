@@ -1,7 +1,5 @@
 #include "BTree.h"
-//
-// TODO: Zweryfikuj czy nie u¿ywasz za du¿o pamiêci
-//
+#include <functional>
 
 bool BTree::InsertRecord(DiskRecord diskRecord)
 {
@@ -81,13 +79,12 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
             return foundRecord;
         }
 
-        std::vector<TreeRecord> records = currentPage->GetRecords();
-
         std::size_t nextPageNumber = NULLPTR;
+        std::size_t recordsSize = currentPage->GetRecordsSize();
         // TODO: cleanup powtarza siê kod
-        for (std::size_t i = 0; i < records.size(); ++i)
+        for (std::size_t i = 0; i < recordsSize; ++i)
         {
-            if (treeRecordId < records[i].GetId())
+            if (treeRecordId < currentPage->GetRecordByIndex(i).GetId())
             {
                 if (i != 0) {
                     nextPageNumber = currentPage->GetRightChildPageNumberById(i - 1);
@@ -99,10 +96,9 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
             }
         }
 
-        // Jeœli nie znaleziono mniejszego klucza, przechodzimy do ostatniej strony dziecka
         if (nextPageNumber == NULLPTR)
         {
-            nextPageNumber = currentPage->GetRightChildPageNumberById(records.size() - 1);
+            nextPageNumber = currentPage->GetRightChildPageNumberById(recordsSize - 1);
         }
 
         currentPageNumber = nextPageNumber;
@@ -111,6 +107,11 @@ TreeRecord BTree::FindRecord(std::size_t treeRecordId)
     std::cout << "SEARCH R:" << this->treePageManager.GetPagesReadCounter() << " W:"
         << this->treePageManager.GetPagesWrittenCounter() << "\n";
     return TreeRecord();
+}
+
+void BTree::PrintDiskFile()
+{
+    this->diskPageManager.PrintFile();
 }
 
 std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
@@ -123,13 +124,13 @@ std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
     while (currentPageNumber != NULLPTR) {
         TreePage* currentPage = this->treePageManager.ReadPageWithCache(currentPageNumber);
 
-        std::vector<TreeRecord> records = currentPage->GetRecords();
 
         std::size_t nextPageNumber = NULLPTR;
+        std::size_t recordsSize = currentPage->GetRecordsSize();
         // TODO: cleanup powtarza siê kod
-        for (std::size_t i = 0; i < records.size(); ++i) 
+        for (std::size_t i = 0; i < recordsSize; ++i)
         {
-            if (treeRecordId < records[i].GetId())
+            if (treeRecordId < currentPage->GetRecordByIndex(i).GetId())
             {
                 if (i != 0) {
                     nextPageNumber = currentPage->GetRightChildPageNumberById(i - 1);
@@ -142,7 +143,7 @@ std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
         }
 
         if (nextPageNumber == NULLPTR) {
-            nextPageNumber = currentPage->GetRightChildPageNumberById(records.size() - 1);
+            nextPageNumber = currentPage->GetRightChildPageNumberById(recordsSize - 1);
         }
 
         if (nextPageNumber == NULLPTR) {
@@ -226,25 +227,25 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
 
 std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size_t currentPageNumber)
 {
-    std::vector<TreeRecord> parentRecords = parentPage->GetRecords();
     std::vector<SiblingInfo> siblings;
+    std::size_t recordsSize = parentPage->GetRecordsSize();
 
     // TODO: CLEANUP za du¿o wciêæ
 
-    for (std::size_t i = 0; i < parentRecords.size(); ++i) { 
+    for (std::size_t i = 0; i < recordsSize; ++i) {
 
         std::size_t rightSiblingNumber = parentPage->GetRightChildPageNumberById(i);
 
         if (i == 0) {
             if (parentPage->GetHeadLeftChildPageNumber() == currentPageNumber) {
-                siblings.push_back(SiblingInfo(parentRecords[i], RIGHT_SIBLING, rightSiblingNumber));
+                siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), RIGHT_SIBLING, rightSiblingNumber));
                 return siblings;
             }
             else if (rightSiblingNumber == currentPageNumber) {
-                siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
+                siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
             }
         }
-        else if (i == parentRecords.size() - 1 && rightSiblingNumber == currentPageNumber) {
+        else if (i == recordsSize - 1 && rightSiblingNumber == currentPageNumber) {
             std::size_t leftSiblingNumber;
             if (i == 0) {
                 leftSiblingNumber = parentPage->GetHeadLeftChildPageNumber();
@@ -252,14 +253,14 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
             else {
                 leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
             }
-            siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, leftSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, leftSiblingNumber));
             return siblings;
         }
         else if (rightSiblingNumber == currentPageNumber) {
-            siblings.push_back(SiblingInfo(parentRecords[i], RIGHT_SIBLING, rightSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), RIGHT_SIBLING, rightSiblingNumber));
 
             std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
-            siblings.push_back(SiblingInfo(parentRecords[i], LEFT_SIBLING, leftSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, leftSiblingNumber));
             return siblings;
         }
 
@@ -270,14 +271,12 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
 
 TreeRecord BTree::SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert)
 {
-    std::size_t recordsSize = pageToSplit->GetRecords().size();
-
+    std::size_t recordsSize = pageToSplit->GetRecordsSize();
     pageToSplit->InsertRecord(recordToInsert);
-
-    std::vector<TreeRecord> records = pageToSplit->GetRecords();
+    recordsSize++;
 
     std::size_t medianIndex = recordsSize / 2;
-    TreeRecord medianRecord = records[medianIndex];
+    TreeRecord medianRecord = pageToSplit->GetRecordByIndex(medianIndex);
 
     TreePage newPage = this->treePageManager.CreateNewPage();
     newPage.SetHeadLeftChildPageNumber(medianRecord.GetTreeRightChildNumber());
@@ -295,8 +294,8 @@ TreeRecord BTree::SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert)
 
     }
 
-    pageToSplit->SetRecords(std::vector<TreeRecord>(records.begin(), records.begin() + medianIndex));
-    newPage.SetRecords(std::vector<TreeRecord>(records.begin() + medianIndex + 1, records.end()));
+    newPage.SetRecords(pageToSplit->GetRecordsByIndex(medianIndex, true));
+    pageToSplit->SetRecords(pageToSplit->GetRecordsByIndex(medianIndex, false));
 
     if (parentPageNumber != NULLPTR) {
         medianRecord.SetTreeRightChildNumber(newPage.GetPageNumber());
@@ -314,30 +313,13 @@ void BTree::Print() {
         return;
     }
 
-    // BFS kolejka
-    std::queue<std::pair<std::size_t, int>> pageQueue; // (Numer strony, Poziom drzewa)
-    pageQueue.push({ rootNumber, 0 });
+    // Funkcja pomocnicza do rekursywnego drukowania drzewa
+    std::function<void(std::size_t, int)> printNode = [&](std::size_t pageNumber, int level) {
+        TreePage currentPage = this->treePageManager.ReadPage(pageNumber);
 
-    int currentLevel = 0;
-    std::cout << "LEVEL " << currentLevel << ":\n";
-
-    while (!pageQueue.empty()) {
-        auto [currentPageNumber, level] = pageQueue.front();
-        pageQueue.pop();
-
-        // Jeœli poziom siê zmienia, przechodzimy do nowej linii
-        if (level > currentLevel) {
-            currentLevel = level;
-            std::cout << "\LEVEL " << currentLevel << ":\n";
-        }
-
-        // Pobranie strony i jej danych
-        TreePage currentPage = this->treePageManager.ReadPage(currentPageNumber);
-
-        // Budowanie wêz³a ASCII
+        // Budowanie wêz³a
         std::ostringstream nodeBuilder;
-
-        // Nag³ówek wêz³a
+        nodeBuilder << std::string(level * 4, ' '); // Wciêcie na podstawie poziomu
         nodeBuilder << "Node " << currentPage.GetPageNumber();
 
         // Dane parenta i lewego dziecka
@@ -347,25 +329,26 @@ void BTree::Print() {
         const auto& records = currentPage.GetRecords();
         for (const auto& record : records) {
             nodeBuilder << "|" << (record.GetId() != NULLPTR ? std::to_string(record.GetId()) : "*");
-            //nodeBuilder << "|" << (record.GetDiskPageNumber() != NULLPTR ? std::to_string(record.GetDiskPageNumber()) : "*");
             nodeBuilder << "|" << (record.GetTreeRightChildNumber() != NULLPTR ? std::to_string(record.GetTreeRightChildNumber()) : "*");
         }
 
-        // Drukowanie zbudowanego wêz³a
         std::cout << nodeBuilder.str() << "|\n";
 
-        // Dodawanie dzieci do kolejki BFS
+        // Rekurencyjne drukowanie dzieci
         std::size_t leftChildPageNumber = currentPage.GetHeadLeftChildPageNumber();
         if (leftChildPageNumber != NULLPTR) {
-            pageQueue.push({ leftChildPageNumber, level + 1 });
+            printNode(leftChildPageNumber, level + 1);
         }
 
-        for (std::size_t i = 0; i < records.size(); ++i) {
-            std::size_t rightChildPageNumber = records[i].GetTreeRightChildNumber();
+        for (const auto& record : records) {
+            std::size_t rightChildPageNumber = record.GetTreeRightChildNumber();
             if (rightChildPageNumber != NULLPTR) {
-                pageQueue.push({ rightChildPageNumber, level + 1 });
+                printNode(rightChildPageNumber, level + 1);
             }
         }
-    }
-    std::cout << "\n";
+        };
+
+    // Start drukowania od korzenia
+    printNode(rootNumber, 0);
 }
+

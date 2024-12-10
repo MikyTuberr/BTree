@@ -16,21 +16,24 @@ public:
 	{
 		if (this->randomAccessFile.isFileEmpty()) {
 			this->pagesCounter = 0;
-			//this->randomAccessFile.WriteRecords<std::size_t>({ this->pagesCounter }, 0, std::ios::beg);
+			this->bufferRecordsCounter = 0;
 		}
 		else {
 			auto vec = this->randomAccessFile.ReadRecords<std::size_t>(0, std::ios::beg, DISK_FILE_PARAMS_NUMBER);
 			this->pagesCounter = vec[0];
+			this->bufferRecordsCounter = vec[1];
+			std::streampos cursor = this->CalculateCursor(this->pagesCounter);
+			this->bufferPage.SetRecords(this->randomAccessFile.ReadRecords<DiskRecord>(cursor, std::ios::beg, this->bufferRecordsCounter));
 		}
 	}
 
 	~DiskPageManager() 
 	{
-		std::size_t recordsSize = this->bufferPage.GetRecords().size();
-		if (recordsSize > 0) {
-			this->WritePage(this->bufferPage);
-		}
-		this->randomAccessFile.WriteRecords<std::size_t>({ this->pagesCounter }, 0, std::ios::beg);
+		this->bufferRecordsCounter = this->bufferPage.GetRecords().size();
+		if (!this->WriteBuffer()) {
+			std::cerr << "Error while writing DiskPageManager buffer\n";
+		};
+		this->randomAccessFile.WriteRecords<std::size_t>({ this->pagesCounter, this->bufferRecordsCounter }, 0, std::ios::beg);
 	}
 
 	DiskPage ReadPage(std::size_t pageNumber);
@@ -43,13 +46,16 @@ public:
 	const std::size_t GetPagesCounter() const;
 	const std::size_t GetPagesReadCounter() const;
 	const std::size_t GetPagesWrittenCounter() const;
+
+	void PrintFile();
 private:
 	const std::streampos CalculateCursor(const std::size_t& pageNumber) const;
+	bool WriteBuffer();
 
 	RandomAccessFile randomAccessFile;
 	DiskPage bufferPage;
 	std::size_t pagesCounter;
-	// moze tez rekord counter zeby nie marnowac pamieci
+	std::size_t bufferRecordsCounter;
 	std::size_t pagesReadCounter = 0;
 	std::size_t pagesWrittenCounter = 0;
 };

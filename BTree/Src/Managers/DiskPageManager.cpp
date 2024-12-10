@@ -70,7 +70,32 @@ const std::size_t DiskPageManager::GetPagesWrittenCounter() const
 	return this->pagesWrittenCounter;
 }
 
+void DiskPageManager::PrintFile()
+{
+    for (std::size_t pageIndex = 0; pageIndex < this->pagesCounter; ++pageIndex) {
+        DiskPage page = this->ReadPage(pageIndex);
+        const auto& records = page.GetRecords();
+
+        std::cout << "Page " << pageIndex << ":\n";
+        for (const auto& record : records) {
+			record.Print();
+        }
+    }
+
+    std::cout << "Buffer Page:\n";
+    const auto& bufferRecords = this->bufferPage.GetRecords();
+    for (const auto& record : bufferRecords) {
+		record.Print();
+    }
+}
+
 const std::streampos DiskPageManager::CalculateCursor(const std::size_t& pageNumber) const
 {
 	return (pageNumber * this->bufferPage.GetPageSize()) + DISK_FILE_OFFSET;
+}
+
+bool DiskPageManager::WriteBuffer()
+{
+	std::streampos cursor = this->CalculateCursor(this->pagesCounter);
+	return this->randomAccessFile.WriteRecords(this->bufferPage.GetRecords(), cursor, std::ios_base::beg);
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "./Config.h"
 #include <queue>
+#include <map>
 #include <sstream>
 #include "./Managers/PageManagerConfig.h"
 #include "./Managers/DiskPageManager.h"
@@ -25,6 +26,8 @@ public:
 
 	bool InsertRecord(DiskRecord diskRecord);
 	TreeRecord FindRecord(std::size_t treeRecordId);
+
+	void PrintDiskFile();
 
 	void Print();
 private:

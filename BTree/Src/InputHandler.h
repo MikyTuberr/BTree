@@ -17,5 +17,7 @@ private:
 
     void handleInsertOption();
 
+    void processFileCommands(const std::string& filename);
+
     BTree& bTree;
 };

@@ -168,6 +168,26 @@ const std::vector<TreeRecord> TreePage::GetRecords() const
     return this->records;
 }
 
+const std::vector<TreeRecord> TreePage::GetRecordsByIndex(const std::size_t index, const bool direction)
+{
+    if (direction) {
+        return std::vector<TreeRecord>(records.begin() + index + 1, records.end());
+    }
+    else {
+        return std::vector<TreeRecord>(records.begin(), records.begin() + index);
+    }
+}
+
+const std::size_t TreePage::GetRecordsSize() const
+{
+    return this->records.size();
+}
+
+const TreeRecord TreePage::GetRecordByIndex(const std::size_t i) const
+{
+    return this->records[i];
+}
+
 const std::vector<TreeRecord> TreePage::GetFixedRecords() const
 {
     std::vector<TreeRecord> fixedRecords = this->records;

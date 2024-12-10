@@ -2,10 +2,10 @@
 
 void DiskRecord::Print() const
 {
-    std::cout << "  Id: " << this->id << "\n";
-    std::cout << "  Side A: " << this->sideA << "\n";
-    std::cout << "  Side B: " << this->sideB << "\n";
-    std::cout << "  Angle Alpha: " << this->angleAlpha << "\n";
+    std::cout << "Id: " << this->id << " ";
+    std::cout << "  Side A: " << this->sideA << " ";
+    std::cout << "  Side B: " << this->sideB << " ";
+    std::cout << "  Angle: " << this->angleAlpha << "\n";
 }
 
 std::size_t DiskRecord::GetId() const
