@@ -20,7 +20,7 @@ int main() {
 		PageManagerConfig treePageManagerConfig = PageManagerConfig(TREE_PAGE_SIZE,
 			TREE_PAGE_SIZE / TREE_RECORD_SIZE, treeFilename, treeOpenmode);
 
-		BTree bTree(diskPageManagerConfig, treePageManagerConfig, TREE_PAGE_PARAMS_NUMBER);
+		BTree bTree(diskPageManagerConfig, treePageManagerConfig, TREE_PAGE_PARAMS_NUMBER, d);
 
 		InputHandler inputHandler(bTree);
 		inputHandler.run();

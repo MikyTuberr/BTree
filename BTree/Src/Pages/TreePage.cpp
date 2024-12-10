@@ -43,6 +43,17 @@ TreeRecord TreePage::FindRecordById(std::size_t id)
     return TreeRecord();
 }
 
+void TreePage::RemoveRecordById(std::size_t id)
+{
+    auto& records = this->records;
+
+    auto newEnd = std::remove_if(records.begin(), records.end(), [id](const TreeRecord& record) {
+        return record.GetId() == id;
+        });
+
+    records.erase(newEnd, records.end());
+}
+
 std::pair<std::size_t, TreeRecord> TreePage::FindRightSiblingNumberById(std::size_t id)
 {
     for (std::size_t i = 0; i < this->records.size(); ++i) {

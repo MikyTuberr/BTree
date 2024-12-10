@@ -74,10 +74,11 @@ void InputHandler::run()
         std::cout << "\n--- Main Menu ---\n";
         std::cout << "1. Search record\n";
         std::cout << "2. Insert record\n";
-        std::cout << "3. Print tree\n";
-        std::cout << "4. Print disk file\n";
-        std::cout << "5. Process commands from file\n";
-        std::cout << "6. Exit\n";
+        std::cout << "3. Delete record\n";
+        std::cout << "4. Print tree\n";
+        std::cout << "5. Print disk file\n";
+        std::cout << "6. Process commands from file\n";
+        std::cout << "7. Exit\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -87,7 +88,7 @@ void InputHandler::run()
             int id;
             std::cout << "Enter the ID of the record to search: ";
             std::cin >> id;
-            TreeRecord result = bTree.FindRecord(id);
+            TreeRecord result = bTree.FindRecord(id).first;
             if (result.GetId() != NULLPTR) {
                 std::cout << "Record found: ";
                 result.Print();
@@ -101,18 +102,30 @@ void InputHandler::run()
             handleInsertOption();
         }
         else if (choice == 3) {
-            bTree.Print();
+            int id;
+            std::cout << "Enter the ID of the record to delete: ";
+            std::cin >> id;
+            
+            if (bTree.DeleteRecord(id)) {
+                std::cout << "Record deleted\n";
+            }
+            else {
+                std::cout << "Record not found.\n";
+            }
         }
         else if (choice == 4) {
-            bTree.PrintDiskFile();
+            bTree.Print();
         }
         else if (choice == 5) {
+            bTree.PrintDiskFile();
+        }
+        else if (choice == 6) {
             std::string filename;
             std::cout << "Enter the filename: ";
             std::cin >> filename;
             this->processFileCommands(filename);
         }
-        else if (choice == 6) {
+        else if (choice == 7) {
             std::cout << "Exiting program.\n";
             break;
         }
@@ -161,7 +174,7 @@ void InputHandler::processFileCommands(const std::string& filename) {
             int id;
             stream >> id;
             if (!stream.fail()) {
-                TreeRecord result = bTree.FindRecord(id);
+                TreeRecord result = bTree.FindRecord(id).first;
                 if (result.GetId() != NULLPTR) {
                     std::cout << "Record found: ";
                     result.Print();

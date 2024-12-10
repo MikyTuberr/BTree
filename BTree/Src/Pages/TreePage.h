@@ -20,6 +20,7 @@ public:
 
 	bool InsertRecord(const TreeRecord treeRecord);
 	TreeRecord FindRecordById(std::size_t id);
+	void RemoveRecordById(std::size_t id);
 	std::pair<std::size_t, TreeRecord> FindLeftSiblingNumberById(std::size_t id);
 	std::pair<std::size_t, TreeRecord> FindRightSiblingNumberById(std::size_t id);
 	TreeRecord PopTail();
