@@ -17,20 +17,26 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
     // krok 2
     TreeRecord recordToInsert = TreeRecord(diskRecordId, this->diskPageManager.GetPagesCounter());
 
+    bool insertToDisk = true;
+
     while (true) {
         TreePage* currentPage = treePageManager.ReadPageWithCache(currentPageNumber);
 
         // krok 3
         if (!currentPage->isOverflow()) {
             currentPage->InsertRecord(recordToInsert);
-            diskPageManager.InsertRecordToBuffer(diskRecord);
+            if (insertToDisk) {
+                diskPageManager.InsertRecordToBuffer(diskRecord);
+            }
             break;
         }
 
         // krok 4
         // TODO: compensation has some exotic edge case
         if (this->TryCompensation(currentPage, recordToInsert)) {
-            diskPageManager.InsertRecordToBuffer(diskRecord);
+            if (insertToDisk) {
+                diskPageManager.InsertRecordToBuffer(diskRecord);
+            }
             // krok 5 
             break;
         }
@@ -38,7 +44,11 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
         // krok 6
         std::size_t rootNumberBeforeSplit = this->treePageManager.GetRootNumber();
         recordToInsert = this->SplitPage(currentPage, recordToInsert);
-        diskPageManager.InsertRecordToBuffer(diskRecord);
+
+        if (insertToDisk) {
+            diskPageManager.InsertRecordToBuffer(diskRecord);
+        }
+        insertToDisk = false;
 
         if (currentPageNumber == rootNumberBeforeSplit) {
             break;
@@ -354,11 +364,11 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
 
         if (i == 0) {
             if (parentPage->GetHeadLeftChildPageNumber() == currentPageNumber) {
-                siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), RIGHT_SIBLING, rightSiblingNumber));
+                siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), RIGHT_SIBLING, rightSiblingNumber));
                 return siblings;
             }
             else if (rightSiblingNumber == currentPageNumber) {
-                siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
+                siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
             }
         }
         else if (i == recordsSize - 1 && rightSiblingNumber == currentPageNumber) {
@@ -369,14 +379,14 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
             else {
                 leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
             }
-            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, leftSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), LEFT_SIBLING, leftSiblingNumber));
             return siblings;
         }
         else if (rightSiblingNumber == currentPageNumber) {
-            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), RIGHT_SIBLING, rightSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), RIGHT_SIBLING, rightSiblingNumber));
 
             std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
-            siblings.push_back(SiblingInfo(parentPage->FindRecordById(i), LEFT_SIBLING, leftSiblingNumber));
+            siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), LEFT_SIBLING, leftSiblingNumber));
             return siblings;
         }
 

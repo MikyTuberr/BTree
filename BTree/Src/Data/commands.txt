@@ -1,5 +1,3 @@
 insert 1 10 20 30
 insert 2 15 25 35
-search 1
-search 3
 insert 3 5 10 15

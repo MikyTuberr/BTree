@@ -28,7 +28,8 @@ void InputHandler::handleInsertOption()
         std::cout << "1. Insert random record\n";
         std::cout << "2. Insert record from keyboard\n";
         std::cout << "3. Print tree\n";
-        std::cout << "4. Go back\n";
+        std::cout << "4. Print disk file\n";
+        std::cout << "5. Go back\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -60,6 +61,9 @@ void InputHandler::handleInsertOption()
             bTree.Print();
         }
         else if (choice == 4) {
+            bTree.PrintDiskFile();
+        }
+        else if (choice == 5) {
             break;
         }
         else {

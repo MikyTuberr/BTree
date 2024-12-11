@@ -74,6 +74,7 @@ void DiskPageManager::PrintFile()
 {
     for (std::size_t pageIndex = 0; pageIndex < this->pagesCounter; ++pageIndex) {
         DiskPage page = this->ReadPage(pageIndex);
+		this->pagesReadCounter--;
         const auto& records = page.GetRecords();
 
         std::cout << "Page " << pageIndex << ":\n";
