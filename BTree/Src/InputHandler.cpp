@@ -26,10 +26,11 @@ void InputHandler::handleInsertOption()
     while (true) {
         std::cout << "\n--- Insert Menu ---\n";
         std::cout << "1. Insert random record\n";
-        std::cout << "2. Insert record from keyboard\n";
-        std::cout << "3. Print tree\n";
-        std::cout << "4. Print disk file\n";
-        std::cout << "5. Go back\n";
+        std::cout << "2. Insert multiple random records\n";
+        std::cout << "3. Insert record from keyboard\n";
+        std::cout << "4. Print tree\n";
+        std::cout << "5. Print disk file\n";
+        std::cout << "6. Go back\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -47,6 +48,23 @@ void InputHandler::handleInsertOption()
             std::cout << "\n";
         }
         else if (choice == 2) {
+            std::cout << "Enter the number of random records to insert: ";
+            int count;
+            std::cin >> count;
+
+            for (int i = 0; i < count; ++i) {
+                DiskRecord randomRecord = generateRandomRecord();
+                if (bTree.InsertRecord(randomRecord)) {
+                    std::cout << "Inserted random record " << i + 1 << ":\n";
+                }
+                else {
+                    std::cout << "Record " << i + 1 << " already exists:\n";
+                }
+                randomRecord.Print();
+                std::cout << "\n";
+            }
+        }
+        else if (choice == 3) {
             DiskRecord keyboardRecord = inputRecordFromKeyboard();
             if (bTree.InsertRecord(keyboardRecord)) {
                 std::cout << "Inserted record from keyboard:\n";
@@ -57,13 +75,13 @@ void InputHandler::handleInsertOption()
             keyboardRecord.Print();
             std::cout << "\n";
         }
-        else if (choice == 3) {
+        else if (choice == 4) {
             bTree.Print();
         }
-        else if (choice == 4) {
+        else if (choice == 5) {
             bTree.PrintDiskFile();
         }
-        else if (choice == 5) {
+        else if (choice == 6) {
             break;
         }
         else {
@@ -71,6 +89,7 @@ void InputHandler::handleInsertOption()
         }
     }
 }
+
 
 void InputHandler::run()
 {
@@ -111,10 +130,10 @@ void InputHandler::run()
             std::cin >> id;
             
             if (bTree.DeleteRecord(id)) {
-                std::cout << "Record deleted\n";
+                std::cout << "Record " << id << " deleted.\n";
             }
             else {
-                std::cout << "Record not found.\n";
+                std::cout << "Record " << id << " not found.\n";
             }
         }
         else if (choice == 4) {

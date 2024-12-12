@@ -141,6 +141,7 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
 
     if (currentPage->GetHeadLeftChildPageNumber() == NULLPTR) {
         currentPage->RemoveRecordById(treeRecordId);
+        // usunac z dysku tutaj
     }
     else {
         std::size_t rightSubtreePageNumber = currentPage->GetRightChildPageNumberById(treeRecordId);
@@ -152,23 +153,34 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
 
         currentPage = this->treePageManager.ReadPageWithCache(minPageNumber);
         currentPage->RemoveRecordById(minRecord.GetId());
+        // usunac z dysku tutaj
     }
 
     if (currentPage->GetRecordsSize() >= this->d) {
-        // delete na dysku
         this->treePageManager.FlushPageCache();
         return true;
     }
 
-    // compensation
-    // DO POPRAWKI PEWNIE
-    if (this->TryCompensation(currentPage)) {
-        // delete na dysku
-        this->treePageManager.FlushPageCache();
-        return true;
+    while (true) {
+        // compensation
+        // DO POPRAWKI PEWNIE
+        if (this->TryCompensation(currentPage)) {
+            this->treePageManager.FlushPageCache();
+            return true;
+        }
+
+        // merge
+        currentPageNumber = this->MergePage(currentPage);
+        if (currentPageNumber == NULLPTR) {
+            std::cout << "NULLPTR after MERGE!\n";
+        }
+
+        currentPage = this->treePageManager.ReadPageWithCache(currentPageNumber);
+        if (currentPage->GetRecordsSize() >= this->d) {
+            break;
+        }
     }
 
-    // merge
     this->treePageManager.FlushPageCache();
     return true;
 }
@@ -328,13 +340,14 @@ bool BTree::TryCompensation(TreePage* currentPage)
 
     if (siblingType == LEFT_SIBLING) {
         TreeRecord tail = siblingPage->PopTail();
+        std::size_t tailRightChildNumber = tail.GetTreeRightChildNumber();
         tail.SetTreeRightChildNumber(separatorRecord.GetTreeRightChildNumber());
 
         separatorRecord.SetTreeRightChildNumber(currentPage->GetHeadLeftChildPageNumber());
-        currentPage->SetHeadLeftChildPageNumber(parentPage->FindLeftSiblingNumberById(separatorRecord.GetId()).first);
+        currentPage->SetHeadLeftChildPageNumber(tailRightChildNumber);
 
         parentPage->ReplaceRecord(separatorRecord, tail);
-        siblingPage->InsertRecord(separatorRecord);
+        currentPage->InsertRecord(separatorRecord);
     }
     else {
         TreeRecord head = siblingPage->PopHead();
@@ -345,7 +358,7 @@ bool BTree::TryCompensation(TreePage* currentPage)
         siblingPage->SetHeadLeftChildPageNumber(headRightChildNumber);
 
         parentPage->ReplaceRecord(separatorRecord, head);
-        siblingPage->InsertRecord(separatorRecord);
+        currentPage->InsertRecord(separatorRecord);
     }
 
     return true;
@@ -368,7 +381,12 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
                 return siblings;
             }
             else if (rightSiblingNumber == currentPageNumber) {
+                if (recordsSize > i + 1) {
+                    rightSiblingNumber = parentPage->GetRightChildPageNumberById(i + 1);
+                    siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i + 1), RIGHT_SIBLING, rightSiblingNumber));
+                }
                 siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), LEFT_SIBLING, parentPage->GetHeadLeftChildPageNumber()));
+                return siblings;
             }
         }
         else if (i == recordsSize - 1 && rightSiblingNumber == currentPageNumber) {
@@ -383,7 +401,10 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
             return siblings;
         }
         else if (rightSiblingNumber == currentPageNumber) {
-            siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), RIGHT_SIBLING, rightSiblingNumber));
+            if (recordsSize > i + 1) {
+                rightSiblingNumber = parentPage->GetRightChildPageNumberById(i + 1);
+                siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i + 1), RIGHT_SIBLING, rightSiblingNumber));
+            }
 
             std::size_t leftSiblingNumber = parentPage->GetRightChildPageNumberById(i - 1);
             siblings.push_back(SiblingInfo(parentPage->GetRecordByIndex(i), LEFT_SIBLING, leftSiblingNumber));
@@ -429,6 +450,68 @@ TreeRecord BTree::SplitPage(TreePage* pageToSplit, TreeRecord recordToInsert)
 
     treePageManager.WritePage(newPage);
     return medianRecord;
+}
+
+std::size_t BTree::MergePage(TreePage* pageToMerge)
+{
+    std::size_t currentPageNumber = pageToMerge->GetPageNumber();
+    std::size_t parentPageNumber = this->treePageManager.FindParentNumber(currentPageNumber);
+
+    if (parentPageNumber == NULLPTR) {
+        // dobrze bo to jest root wiec moze miec mniej niz standardowo
+        return NULLPTR;
+    }
+
+    TreePage* parentPage = treePageManager.ReadPageWithCache(parentPageNumber);
+
+    std::vector<SiblingInfo> siblings = DetermineSibling(parentPage, currentPageNumber);
+
+    if (siblings.empty()) {
+       return NULLPTR;
+    }
+
+    SiblingInfo sibling = SiblingInfo(TreeRecord(), RIGHT_SIBLING, NULLPTR);
+    TreePage* siblingPage = nullptr;
+
+    for (const auto& sibli : siblings) {
+        siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
+
+        if (siblingPage->GetRecordsSize() + pageToMerge->GetRecordsSize() < 2*d) {
+            sibling = sibli;
+            break;
+        }
+    }
+
+    if (sibling.siblingNumber == NULLPTR) {
+        return NULLPTR;
+    }
+
+    SiblingType siblingType = sibling.siblingType;
+    TreeRecord separatorRecord = sibling.separatorRecord;
+
+
+    if (siblingType == LEFT_SIBLING) {
+        separatorRecord.SetTreeRightChildNumber(pageToMerge->GetHeadLeftChildPageNumber());
+        siblingPage->InsertRecord(separatorRecord);
+
+        for (std::size_t i = 0; i < pageToMerge->GetRecordsSize(); ++i) {
+            siblingPage->InsertRecord(pageToMerge->GetRecordByIndex(i));
+        }
+
+        parentPage->RemoveRecordById(separatorRecord.GetId());
+    }
+    else {
+        separatorRecord.SetTreeRightChildNumber(siblingPage->GetHeadLeftChildPageNumber());
+        pageToMerge->InsertRecord(separatorRecord);
+
+        for (std::size_t i = 0; i < siblingPage->GetRecordsSize(); ++i) {
+            pageToMerge->InsertRecord(siblingPage->GetRecordByIndex(i));
+        }
+
+        parentPage->RemoveRecordById(separatorRecord.GetId());
+    }
+
+    return parentPageNumber;
 }
 
 std::pair<TreeRecord, std::size_t> BTree::FindMinInRightSubtree(std::size_t pageNumber)
