@@ -28,6 +28,7 @@ public:
 
 	bool InsertRecord(const DiskRecord diskRecord);
 	DiskRecord* FindRecordById(std::size_t id);
+	void RemoveRecordById(std::size_t id);
 
 	bool isOverflow() const;
 

@@ -141,7 +141,7 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
 
     if (currentPage->GetHeadLeftChildPageNumber() == NULLPTR) {
         currentPage->RemoveRecordById(treeRecordId);
-        // usunac z dysku tutaj
+        this->diskPageManager.RemoveRecordById(treeRecord.GetDiskPageNumber(), treeRecordId);
     }
     else {
         std::size_t rightSubtreePageNumber = currentPage->GetRightChildPageNumberById(treeRecordId);
@@ -153,7 +153,7 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
 
         currentPage = this->treePageManager.ReadPageWithCache(minPageNumber);
         currentPage->RemoveRecordById(minRecord.GetId());
-        // usunac z dysku tutaj
+        this->diskPageManager.RemoveRecordById(treeRecord.GetDiskPageNumber(), minRecord.GetId());
     }
 
     if (currentPage->GetRecordsSize() >= this->d) {
@@ -162,14 +162,11 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
     }
 
     while (true) {
-        // compensation
-        // DO POPRAWKI PEWNIE
         if (this->TryCompensation(currentPage)) {
             this->treePageManager.FlushPageCache();
             return true;
         }
 
-        // merge
         currentPageNumber = this->MergePage(currentPage);
         if (currentPageNumber == NULLPTR) {
             std::cout << "NULLPTR after MERGE!\n";

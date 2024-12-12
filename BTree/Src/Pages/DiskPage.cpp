@@ -72,6 +72,17 @@ DiskRecord* DiskPage::FindRecordById(std::size_t id)
     return nullptr;
 }
 
+void DiskPage::RemoveRecordById(std::size_t id)
+{
+    auto& records = this->records;
+
+    auto newEnd = std::remove_if(records.begin(), records.end(), [id](const DiskRecord& record) {
+        return record.GetId() == id;
+        });
+
+    records.erase(newEnd, records.end());
+}
+
 bool DiskPage::isOverflow() const
 {
     return this->records.size() == this->recordsNumber;
