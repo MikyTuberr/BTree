@@ -34,6 +34,20 @@ bool DiskPageManager::WritePage(const DiskPage& diskPage)
 	return false;
 }
 
+void DiskPageManager::UpdateRecordById(DiskRecord updatedRecord, std::size_t pageNumber, std::size_t recordId)
+{
+	if (pageNumber != this->pagesCounter) {
+		DiskPage page = this->ReadPage(pageNumber);
+		page.RemoveRecordById(recordId);
+		page.InsertRecord(updatedRecord);
+		this->WritePage(page);
+	}
+	else {
+		this->bufferPage.RemoveRecordById(recordId);
+		this->bufferPage.InsertRecord(updatedRecord);
+	}
+}
+
 void DiskPageManager::RemoveRecordById(std::size_t pageNumber, std::size_t recordId)
 {
 	if (pageNumber != this->pagesCounter) {

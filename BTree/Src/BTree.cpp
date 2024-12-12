@@ -182,6 +182,18 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
     return true;
 }
 
+bool BTree::UpdateRecord(DiskRecord updatedRecord)
+{
+    std::size_t recordId = updatedRecord.GetId();
+    TreeRecord treeRecord = this->FindRecord(recordId).first;
+
+    if (treeRecord.GetId() == NULLPTR) {
+        return false;
+    }
+
+    this->diskPageManager.UpdateRecordById(updatedRecord, treeRecord.GetDiskPageNumber(), recordId);
+}
+
 void BTree::PrintDiskFile()
 {
     this->diskPageManager.PrintFile();

@@ -24,13 +24,12 @@ public:
 	BTree(PageManagerConfig diskConfig, PageManagerConfig treeConfig, std::size_t paramsNumber, std::size_t d)
 		: diskPageManager(diskConfig), treePageManager(treeConfig, paramsNumber), d(d){}
 
-
 	bool InsertRecord(DiskRecord diskRecord);
 	std::pair<TreeRecord, std::size_t> FindRecord(std::size_t treeRecordId);
 	bool DeleteRecord(std::size_t treeRecordId);
+	bool UpdateRecord(DiskRecord updatedRecord);
 
 	void PrintDiskFile();
-
 	void Print();
 private:
 

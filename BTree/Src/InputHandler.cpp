@@ -17,8 +17,7 @@ DiskRecord InputHandler::inputRecordFromKeyboard()
 
 DiskRecord InputHandler::generateRandomRecord()
 {
-    static int counter = 1;
-    return DiskRecord(counter, rand() % 100, rand() % 100);
+    return DiskRecord(rand() % 100, rand() % 100, rand() % 100);
 }
 
 void InputHandler::handleInsertOption()
@@ -98,10 +97,11 @@ void InputHandler::run()
         std::cout << "1. Search record\n";
         std::cout << "2. Insert record\n";
         std::cout << "3. Delete record\n";
-        std::cout << "4. Print tree\n";
-        std::cout << "5. Print disk file\n";
-        std::cout << "6. Process commands from file\n";
-        std::cout << "7. Exit\n";
+        std::cout << "4. Update record\n";
+        std::cout << "5. Print tree\n";
+        std::cout << "6. Print disk file\n";
+        std::cout << "7. Process commands from file\n";
+        std::cout << "8. Exit\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -137,18 +137,27 @@ void InputHandler::run()
             }
         }
         else if (choice == 4) {
-            bTree.Print();
+            DiskRecord updatedRecord = inputRecordFromKeyboard();
+            if (bTree.UpdateRecord(updatedRecord)) {
+                std::cout << "Record " << updatedRecord.GetId() << " updated.\n";
+            }
+            else {
+                std::cout << "Record " << updatedRecord.GetId() << " not found.\n";
+            }
         }
         else if (choice == 5) {
-            bTree.PrintDiskFile();
+            bTree.Print();
         }
         else if (choice == 6) {
+            bTree.PrintDiskFile();
+        }
+        else if (choice == 7) {
             std::string filename;
             std::cout << "Enter the filename: ";
             std::cin >> filename;
             this->processFileCommands(filename);
         }
-        else if (choice == 7) {
+        else if (choice == 8) {
             std::cout << "Exiting program.\n";
             break;
         }
