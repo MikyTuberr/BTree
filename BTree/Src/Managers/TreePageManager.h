@@ -33,7 +33,7 @@ public:
 	}
 
 	TreePage* ReadPageWithCache(std::size_t pageNumber);
-	TreePage ReadPage(std::size_t pageNumber);
+	TreePage ReadPage(std::size_t pageNumber, bool incrementReadCounter);
 	bool WritePage(const TreePage& treePage);
 	bool FlushPageCache();
 

@@ -111,7 +111,7 @@ void InputHandler::run()
             int id;
             std::cout << "Enter the ID of the record to search: ";
             std::cin >> id;
-            TreeRecord result = bTree.FindRecord(id).first;
+            DiskRecord result = bTree.SearchRecord(id);
             if (result.GetId() != NULLPTR) {
                 std::cout << "Record found: ";
                 result.Print();

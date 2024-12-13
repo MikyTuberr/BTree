@@ -7,7 +7,7 @@ TreePage* TreePageManager::ReadPageWithCache(std::size_t pageNumber)
         return &it->second;
     }
 
-    TreePage page = this->ReadPage(pageNumber);
+    TreePage page = this->ReadPage(pageNumber, true);
 
     this->pageCache[pageNumber] = page;
     this->pageCacheOrder.push_back(page.GetPageNumber());
@@ -15,7 +15,7 @@ TreePage* TreePageManager::ReadPageWithCache(std::size_t pageNumber)
     return &this->pageCache[pageNumber];
 }
 
-TreePage TreePageManager::ReadPage(std::size_t pageNumber)
+TreePage TreePageManager::ReadPage(std::size_t pageNumber, bool incrementReadCounter)
 {
     std::streampos cursor = this->CalculateCursor(pageNumber);
 
@@ -40,7 +40,9 @@ TreePage TreePageManager::ReadPage(std::size_t pageNumber)
 
     TreePage page = TreePage(this->pageSize, this->pageRecordsNumber, pageNumber, params[0], filteredRecords);
 
-    this->pagesReadCounter++;
+    if (incrementReadCounter) {
+        this->pagesReadCounter++;
+    }
 
     return page;
 }

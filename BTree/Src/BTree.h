@@ -26,6 +26,7 @@ public:
 
 	bool InsertRecord(DiskRecord diskRecord);
 	std::pair<TreeRecord, std::size_t> FindRecord(std::size_t treeRecordId);
+	DiskRecord SearchRecord(std::size_t recordId);
 	bool DeleteRecord(std::size_t treeRecordId);
 	bool UpdateRecord(DiskRecord updatedRecord);
 
