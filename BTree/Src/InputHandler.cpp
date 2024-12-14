@@ -178,7 +178,6 @@ void InputHandler::run()
     }
 }
 
-// TODO: UPDATE AND DELETE
 void InputHandler::processFileCommands(const std::string& filename) {
     std::ifstream file(filename);
 
@@ -197,7 +196,7 @@ void InputHandler::processFileCommands(const std::string& filename) {
             int id, a, b, alpha;
             stream >> id >> a >> b >> alpha;
             if (!stream.fail()) {
-                DiskRecord record(id, a, b, alpha);
+                DiskRecord record(a, b, alpha, id);
                 if (bTree.InsertRecord(record)) {
                     std::cout << "Inserted record: ";
                 }
@@ -215,18 +214,51 @@ void InputHandler::processFileCommands(const std::string& filename) {
             int id;
             stream >> id;
             if (!stream.fail()) {
-                TreeRecord result = bTree.FindRecord(id).first;
+                DiskRecord result = bTree.SearchRecord(id);
                 if (result.GetId() != NULLPTR) {
                     std::cout << "Record found: ";
                     result.Print();
                     std::cout << "\n";
                 }
                 else {
-                    std::cout << "Record not found for ID: " << id << "\n";
+                    std::cout << "Record not found for ID: " << id << "\n\n";
                 }
             }
             else {
                 std::cerr << "Error: Invalid search command format in line: " << line << "\n";
+            }
+        }
+        else if (command == "delete") {
+            int id;
+            stream >> id;
+            if (!stream.fail()) {
+                if (bTree.DeleteRecord(id)) {
+                    std::cout << "Record " << id << " deleted.\n\n";
+                }
+                else {
+                    std::cout << "Record not found for ID: " << id << "\n\n";
+                }
+            }
+            else {
+                std::cerr << "Error: Invalid delete command format in line: " << line << "\n";
+            }
+        }
+        else if (command == "update") {
+            int id, a, b, alpha;
+            stream >> id >> a >> b >> alpha;
+            if (!stream.fail()) {
+                DiskRecord updatedRecord(a, b, alpha, id);
+                if (bTree.UpdateRecord(updatedRecord)) {
+                    std::cout << "Updated record: ";
+                }
+                else {
+                    std::cout << "Record not found for update: ";
+                }
+                updatedRecord.Print();
+                std::cout << "\n";
+            }
+            else {
+                std::cerr << "Error: Invalid update command format in line: " << line << "\n";
             }
         }
         else {

@@ -84,7 +84,7 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
         TreeRecord foundRecord = currentPage->FindRecordById(treeRecordId);
 
         if (foundRecord.GetId() != NULLPTR) {
-            PrintIOCounters("SEARCH");
+            //PrintIOCounters("SEARCH");
             return { foundRecord, currentPageNumber };
         }
 
@@ -112,14 +112,14 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
 
         if (nextPageNumber == NULLPTR) {
             // Rekord nie zosta³ znaleziony, a dotarliœmy do liœcia
-            PrintIOCounters("SEARCH");
+            //PrintIOCounters("SEARCH");
             return { TreeRecord(), currentPageNumber };
         }
 
         currentPageNumber = nextPageNumber;
     }
 
-    PrintIOCounters("SEARCH");
+    //PrintIOCounters("SEARCH");
     return { TreeRecord(), NULLPTR };
 }
 
