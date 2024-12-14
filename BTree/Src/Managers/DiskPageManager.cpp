@@ -124,5 +124,6 @@ const std::streampos DiskPageManager::CalculateCursor(const std::size_t& pageNum
 bool DiskPageManager::WriteBuffer()
 {
 	std::streampos cursor = this->CalculateCursor(this->pagesCounter);
+	this->pagesWrittenCounter++;
 	return this->randomAccessFile.WriteRecords(this->bufferPage.GetRecords(), cursor, std::ios_base::beg);
 }

@@ -30,6 +30,7 @@ public:
 	bool DeleteRecord(std::size_t treeRecordId);
 	bool UpdateRecord(DiskRecord updatedRecord);
 
+	void PrintIOCounters(const std::string& operationName);
 	void PrintDiskFile();
 	void Print();
 private:

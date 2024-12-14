@@ -60,12 +60,7 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
 
     this->treePageManager.FlushPageCache();
    
-    std::cout << "===================================\n";
-    std::cout << "INSERT (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:" 
-        << this->treePageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "INSERT (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << "      W:" 
-        << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "===================================\n";
+    PrintIOCounters("INSERT");
 	return true;
 }
 
@@ -73,7 +68,7 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
 {
     std::size_t currentPageNumber = this->treePageManager.GetRootNumber();
 
-    if (currentPageNumber == NULLPTR) {
+    /*if (currentPageNumber == NULLPTR) {
         std::cout << "===================================\n";
         std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
             << this->treePageManager.GetPagesWrittenCounter() << "\n";
@@ -81,7 +76,7 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
             << this->diskPageManager.GetPagesWrittenCounter() << "\n";
         std::cout << "===================================\n";
         return { TreeRecord(), NULLPTR };
-    }
+    }*/
 
     while (currentPageNumber != NULLPTR)
     {
@@ -89,12 +84,7 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
         TreeRecord foundRecord = currentPage->FindRecordById(treeRecordId);
 
         if (foundRecord.GetId() != NULLPTR) {
-            std::cout << "===================================\n";
-            std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-                << this->treePageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-                << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "===================================\n";
+            PrintIOCounters("SEARCH");
             return { foundRecord, currentPageNumber };
         }
 
@@ -122,23 +112,14 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
 
         if (nextPageNumber == NULLPTR) {
             // Rekord nie zosta³ znaleziony, a dotarliœmy do liœcia
-            std::cout << "===================================\n";
-            std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-                << this->treePageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-                << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "===================================\n";
+            PrintIOCounters("SEARCH");
             return { TreeRecord(), currentPageNumber };
         }
 
         currentPageNumber = nextPageNumber;
     }
-    std::cout << "===================================\n";
-    std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-        << this->treePageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-        << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "===================================\n";
+
+    PrintIOCounters("SEARCH");
     return { TreeRecord(), NULLPTR };
 }
 
@@ -146,7 +127,7 @@ DiskRecord BTree::SearchRecord(std::size_t recordId)
 {
     std::size_t currentPageNumber = this->treePageManager.GetRootNumber();
 
-    if (currentPageNumber == NULLPTR) {
+    /*if (currentPageNumber == NULLPTR) {
         std::cout << "===================================\n";
         std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
             << this->treePageManager.GetPagesWrittenCounter() << "\n";
@@ -154,7 +135,7 @@ DiskRecord BTree::SearchRecord(std::size_t recordId)
             << this->diskPageManager.GetPagesWrittenCounter() << "\n";
         std::cout << "===================================\n";
         return DiskRecord();
-    }
+    }*/
 
     while (currentPageNumber != NULLPTR)
     {
@@ -163,13 +144,8 @@ DiskRecord BTree::SearchRecord(std::size_t recordId)
 
         if (foundRecord.GetId() != NULLPTR) {
             DiskPage diskPage = this->diskPageManager.ReadPage(foundRecord.GetDiskPageNumber());
-            DiskRecord* diskRecord = this->diskPageManager.FindRecordInPageById(diskPage, foundRecord.GetId());
-            std::cout << "===================================\n";
-            std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-                << this->treePageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-                << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "===================================\n";
+            DiskRecord* diskRecord = diskPage.FindRecordById(foundRecord.GetId());
+            PrintIOCounters("SEARCH");
             return *diskRecord;
         }
 
@@ -197,12 +173,8 @@ DiskRecord BTree::SearchRecord(std::size_t recordId)
 
         currentPageNumber = nextPageNumber;
     }
-    std::cout << "===================================\n";
-    std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-        << this->treePageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-        << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "===================================\n";
+
+    PrintIOCounters("SEARCH");
     return DiskRecord();
 }
 
@@ -214,12 +186,8 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
     std::size_t currentPageNumber = pair.second;
 
     if (treeRecord.GetId() == NULLPTR) {
-        std::cout << "===================================\n";
-        std::cout << "DELETE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-            << this->treePageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "DELETE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-            << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "===================================\n";
+        this->treePageManager.FlushPageCache();
+        PrintIOCounters("DELETE");
         return false;
     }
 
@@ -244,30 +212,20 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
 
     if (currentPage->GetRecordsSize() >= this->d) {
         this->treePageManager.FlushPageCache();
-        std::cout << "===================================\n";
-        std::cout << "DELETE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-            << this->treePageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "DELETE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-            << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "===================================\n";
+        PrintIOCounters("DELETE");
         return true;
     }
 
     while (true) {
         if (this->TryCompensation(currentPage)) {
             this->treePageManager.FlushPageCache();
-            std::cout << "===================================\n";
-            std::cout << "DELETE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-                << this->treePageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "DELETE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-                << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-            std::cout << "===================================\n";
+            PrintIOCounters("DELETE");
             return true;
         }
 
         currentPageNumber = this->MergePage(currentPage);
         if (currentPageNumber == NULLPTR) {
-            std::cout << "NULLPTR after MERGE!\n";
+            break;
         }
 
         currentPage = this->treePageManager.ReadPageWithCache(currentPageNumber);
@@ -277,12 +235,7 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
     }
 
     this->treePageManager.FlushPageCache();
-    std::cout << "===================================\n";
-    std::cout << "DELETE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-        << this->treePageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "DELETE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-        << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "===================================\n";
+    PrintIOCounters("DELETE");
     return true;
 }
 
@@ -292,27 +245,29 @@ bool BTree::UpdateRecord(DiskRecord updatedRecord)
     TreeRecord treeRecord = this->FindRecord(recordId).first;
 
     if (treeRecord.GetId() == NULLPTR) {
-        std::cout << "===================================\n";
-        std::cout << "UPDATE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-            << this->treePageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "UPDATE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-            << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "===================================\n";
+        PrintIOCounters("UPDATE");
         return false;
     }
 
     this->diskPageManager.UpdateRecordById(updatedRecord, treeRecord.GetDiskPageNumber(), recordId);
+    PrintIOCounters("UPDATE");
+}
+
+void BTree::PrintIOCounters(const std::string& operationName)
+{
     std::cout << "===================================\n";
-    std::cout << "UPDATE (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
+    std::cout << operationName << " (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
         << this->treePageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "UPDATE (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
+    std::cout << operationName << " (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
         << this->diskPageManager.GetPagesWrittenCounter() << "\n";
     std::cout << "===================================\n";
 }
 
 void BTree::PrintDiskFile()
 {
+    std::cout << "===================================\n";
     this->diskPageManager.PrintFile();
+    std::cout << "===================================\n";
 }
 
 std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
@@ -669,6 +624,8 @@ void BTree::Print() {
         return;
     }
 
+    std::cout << "===================================\n";
+
     // Funkcja pomocnicza do rekursywnego drukowania drzewa
     std::function<void(std::size_t, int)> printNode = [&](std::size_t pageNumber, int level) {
         TreePage currentPage = this->treePageManager.ReadPage(pageNumber, false);
@@ -706,5 +663,6 @@ void BTree::Print() {
 
     // Start drukowania od korzenia
     printNode(rootNumber, 0);
+    std::cout << "===================================\n";
 }
 

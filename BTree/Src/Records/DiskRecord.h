@@ -8,7 +8,7 @@ class DiskRecord
 {
 public:
     DiskRecord()
-        : sideA(0), sideB(0), angleAlpha(0), id(0) {}
+        : sideA(0), sideB(0), angleAlpha(0), id(NULLPTR) {}
 
     DiskRecord(double a, double b, double alpha)
         : sideA(a), sideB(b), angleAlpha(alpha)

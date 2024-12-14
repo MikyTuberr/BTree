@@ -29,7 +29,8 @@ void InputHandler::handleInsertOption()
         std::cout << "3. Insert record from keyboard\n";
         std::cout << "4. Print tree\n";
         std::cout << "5. Print disk file\n";
-        std::cout << "6. Go back\n";
+        std::cout << "6. Print I/O counters\n";
+        std::cout << "7. Go back\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -81,6 +82,9 @@ void InputHandler::handleInsertOption()
             bTree.PrintDiskFile();
         }
         else if (choice == 6) {
+            bTree.PrintIOCounters("");
+        }
+        else if (choice == 7) {
             break;
         }
         else {
@@ -100,8 +104,9 @@ void InputHandler::run()
         std::cout << "4. Update record\n";
         std::cout << "5. Print tree\n";
         std::cout << "6. Print disk file\n";
-        std::cout << "7. Process commands from file\n";
-        std::cout << "8. Exit\n";
+        std::cout << "7. Print I/O counters\n";
+        std::cout << "8. Process commands from file\n";
+        std::cout << "9. Exit\n";
         std::cout << "Choose an option: ";
 
         int choice;
@@ -152,12 +157,15 @@ void InputHandler::run()
             bTree.PrintDiskFile();
         }
         else if (choice == 7) {
+            bTree.PrintIOCounters("");
+        }
+        else if (choice == 8) {
             std::string filename;
             std::cout << "Enter the filename: ";
             std::cin >> filename;
             this->processFileCommands(filename);
         }
-        else if (choice == 8) {
+        else if (choice == 9) {
             std::cout << "Exiting program.\n";
             break;
         }
@@ -170,6 +178,7 @@ void InputHandler::run()
     }
 }
 
+// TODO: UPDATE AND DELETE
 void InputHandler::processFileCommands(const std::string& filename) {
     std::ifstream file(filename);
 

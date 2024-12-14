@@ -17,11 +17,16 @@ public:
 		if (this->randomAccessFile.isFileEmpty()) {
 			this->pagesCounter = 0;
 			this->bufferRecordsCounter = 0;
+			this->pagesReadCounter = 0;
+			this->pagesWrittenCounter = 0;
 		}
 		else {
 			auto vec = this->randomAccessFile.ReadRecords<std::size_t>(0, std::ios::beg, DISK_FILE_PARAMS_NUMBER);
 			this->pagesCounter = vec[0];
 			this->bufferRecordsCounter = vec[1];
+			this->pagesReadCounter = vec[2];
+			this->pagesWrittenCounter = vec[3];
+
 			std::streampos cursor = this->CalculateCursor(this->pagesCounter);
 			this->bufferPage.SetRecords(this->randomAccessFile.ReadRecords<DiskRecord>(cursor, std::ios::beg, this->bufferRecordsCounter));
 		}
@@ -33,7 +38,8 @@ public:
 		if (!this->WriteBuffer()) {
 			std::cerr << "Error while writing DiskPageManager buffer\n";
 		};
-		this->randomAccessFile.WriteRecords<std::size_t>({ this->pagesCounter, this->bufferRecordsCounter }, 0, std::ios::beg);
+		this->randomAccessFile.WriteRecords<std::size_t>({ this->pagesCounter, this->bufferRecordsCounter, 
+			this->pagesReadCounter, this->pagesWrittenCounter }, 0, std::ios::beg);
 	}
 
 	DiskPage ReadPage(std::size_t pageNumber);
@@ -58,6 +64,6 @@ private:
 	DiskPage bufferPage;
 	std::size_t pagesCounter;
 	std::size_t bufferRecordsCounter;
-	std::size_t pagesReadCounter = 0;
-	std::size_t pagesWrittenCounter = 0;
+	std::size_t pagesReadCounter;
+	std::size_t pagesWrittenCounter;
 };
