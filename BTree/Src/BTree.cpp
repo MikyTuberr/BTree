@@ -198,16 +198,17 @@ bool BTree::DeleteRecord(std::size_t treeRecordId)
         this->diskPageManager.RemoveRecordById(treeRecord.GetDiskPageNumber(), treeRecordId);
     }
     else {
-        std::size_t rightSubtreePageNumber = currentPage->GetRightChildPageNumberById(treeRecordId);
+        std::size_t rightSubtreePageNumber = currentPage->FindRightSiblingNumberById(treeRecordId).first;
         auto minPair = FindMinInRightSubtree(rightSubtreePageNumber);
         TreeRecord minRecord = minPair.first;
         std::size_t minPageNumber = minPair.second;
 
+        minRecord.SetTreeRightChildNumber(treeRecord.GetTreeRightChildNumber());
         currentPage->ReplaceRecord(treeRecord, minRecord);
 
         currentPage = this->treePageManager.ReadPageWithCache(minPageNumber);
         currentPage->RemoveRecordById(minRecord.GetId());
-        this->diskPageManager.RemoveRecordById(treeRecord.GetDiskPageNumber(), minRecord.GetId());
+        this->diskPageManager.RemoveRecordById(treeRecord.GetDiskPageNumber(), treeRecordId);
     }
 
     if (currentPage->GetRecordsSize() >= this->d) {
@@ -538,7 +539,6 @@ std::size_t BTree::MergePage(TreePage* pageToMerge)
     std::size_t parentPageNumber = this->treePageManager.FindParentNumber(currentPageNumber);
 
     if (parentPageNumber == NULLPTR) {
-        // dobrze bo to jest root wiec moze miec mniej niz standardowo
         return NULLPTR;
     }
 

@@ -57,17 +57,14 @@ void TreePage::RemoveRecordById(std::size_t id)
 std::pair<std::size_t, TreeRecord> TreePage::FindRightSiblingNumberById(std::size_t id)
 {
     for (std::size_t i = 0; i < this->records.size(); ++i) {
-        if (id < this->records[i].GetId()) {
+        if (id == this->records[i].GetId()) {
             std::size_t rightSiblingNumber = this->GetRightChildPageNumberById(i);
-            TreeRecord separatorRecord = this->records[i]; // chyba git
+            TreeRecord separatorRecord = this->records[i];
             return { rightSiblingNumber, separatorRecord };
         }
     }
 
-    std::size_t lastRightChildPageNumber = this->GetRightChildPageNumberById(this->records.size() - 1);
-    TreeRecord lastSeparator = this->records.back();
-
-    return { lastRightChildPageNumber, lastSeparator };
+    return { NULLPTR, TreeRecord() };
 }
 
 TreeRecord TreePage::PopTail()
