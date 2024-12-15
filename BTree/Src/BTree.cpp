@@ -32,7 +32,6 @@ bool BTree::InsertRecord(DiskRecord diskRecord)
         }
 
         // krok 4
-        // TODO: compensation has some exotic edge case
         if (this->TryCompensation(currentPage, recordToInsert)) {
             if (insertToDisk) {
                 diskPageManager.InsertRecordToBuffer(diskRecord);
@@ -68,23 +67,12 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
 {
     std::size_t currentPageNumber = this->treePageManager.GetRootNumber();
 
-    /*if (currentPageNumber == NULLPTR) {
-        std::cout << "===================================\n";
-        std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-            << this->treePageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-            << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "===================================\n";
-        return { TreeRecord(), NULLPTR };
-    }*/
-
     while (currentPageNumber != NULLPTR)
     {
         TreePage* currentPage = this->treePageManager.ReadPageWithCache(currentPageNumber);
         TreeRecord foundRecord = currentPage->FindRecordById(treeRecordId);
 
         if (foundRecord.GetId() != NULLPTR) {
-            //PrintIOCounters("SEARCH");
             return { foundRecord, currentPageNumber };
         }
 
@@ -112,30 +100,17 @@ std::pair<TreeRecord, std::size_t> BTree::FindRecord(std::size_t treeRecordId)
 
         if (nextPageNumber == NULLPTR) {
             // Rekord nie zosta³ znaleziony, a dotarliœmy do liœcia
-            //PrintIOCounters("SEARCH");
             return { TreeRecord(), currentPageNumber };
         }
 
         currentPageNumber = nextPageNumber;
     }
-
-    //PrintIOCounters("SEARCH");
     return { TreeRecord(), NULLPTR };
 }
 
 DiskRecord BTree::SearchRecord(std::size_t recordId)
 {
     std::size_t currentPageNumber = this->treePageManager.GetRootNumber();
-
-    /*if (currentPageNumber == NULLPTR) {
-        std::cout << "===================================\n";
-        std::cout << "SEARCH (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
-            << this->treePageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "SEARCH (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
-            << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-        std::cout << "===================================\n";
-        return DiskRecord();
-    }*/
 
     while (currentPageNumber != NULLPTR)
     {
@@ -256,19 +231,15 @@ bool BTree::UpdateRecord(DiskRecord updatedRecord)
 
 void BTree::PrintIOCounters(const std::string& operationName)
 {
-    std::cout << "===================================\n";
     std::cout << operationName << " (TREE) R:" << this->treePageManager.GetPagesReadCounter() << " W:"
         << this->treePageManager.GetPagesWrittenCounter() << "\n";
     std::cout << operationName << " (DISK) R:" << this->diskPageManager.GetPagesReadCounter() << " W:"
         << this->diskPageManager.GetPagesWrittenCounter() << "\n";
-    std::cout << "===================================\n";
 }
 
 void BTree::PrintDiskFile()
 {
-    std::cout << "===================================\n";
     this->diskPageManager.PrintFile();
-    std::cout << "===================================\n";
 }
 
 std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
@@ -284,7 +255,7 @@ std::size_t BTree::GetLeaf(std::size_t treeRecordId) {
 
         std::size_t nextPageNumber = NULLPTR;
         std::size_t recordsSize = currentPage->GetRecordsSize();
-        // TODO: cleanup powtarza siê kod
+
         for (std::size_t i = 0; i < recordsSize; ++i)
         {
             if (treeRecordId < currentPage->GetRecordByIndex(i).GetId())
@@ -449,8 +420,6 @@ std::vector<SiblingInfo> BTree::DetermineSibling(TreePage* parentPage, std::size
 {
     std::vector<SiblingInfo> siblings;
     std::size_t recordsSize = parentPage->GetRecordsSize();
-
-    // TODO: CLEANUP za du¿o wciêæ
 
     for (std::size_t i = 0; i < recordsSize; ++i) {
 
@@ -619,13 +588,6 @@ std::pair<TreeRecord, std::size_t> BTree::FindMinInRightSubtree(std::size_t page
 void BTree::Print() {
     std::size_t rootNumber = this->treePageManager.GetRootNumber();
 
-    if (rootNumber == NULLPTR) {
-        std::cout << "Tree is empty." << std::endl;
-        return;
-    }
-
-    std::cout << "===================================\n";
-
     // Funkcja pomocnicza do rekursywnego drukowania drzewa
     std::function<void(std::size_t, int)> printNode = [&](std::size_t pageNumber, int level) {
         TreePage currentPage = this->treePageManager.ReadPage(pageNumber, false);
@@ -663,6 +625,5 @@ void BTree::Print() {
 
     // Start drukowania od korzenia
     printNode(rootNumber, 0);
-    std::cout << "===================================\n";
 }
 

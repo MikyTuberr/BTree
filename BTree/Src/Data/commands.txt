@@ -1,11 +1,11 @@
-insert 1 10 20 30
-insert 2 15 25 35
-insert 3 20 30 40
+insert -s 1 10 20 30
+insert -s 2 15 25 35
+insert -s 3 20 30 40
 search 1
 search 4
 update 1 11 21 31
 delete 2
-insert 4 50 60 70
+insert -s 4 50 60 70
 search 2
 delete 5
 update 3 22 32 42

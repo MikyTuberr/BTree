@@ -48,7 +48,10 @@
     <ClInclude Include="Src\Type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\InputHandler.h">
+    <ClInclude Include="Src\Handlers\InputHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Handlers\FileHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,7 +83,10 @@
     <ClCompile Include="Src\BTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\InputHandler.cpp">
+    <ClCompile Include="Src\Handlers\InputHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Handlers\FileHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
