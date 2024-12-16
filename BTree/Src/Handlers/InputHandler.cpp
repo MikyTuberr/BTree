@@ -13,6 +13,9 @@ void InputHandler::handleInsertCommand(std::istringstream& stream) {
         int count = 1;
         stream >> count;
         for (int i = 0; i < count; ++i) {
+            if (i % 10 == 0) {
+                bTree.Print();
+            }
             DiskRecord record = generateRandomRecord();
             if (bTree.InsertRecord(record)) {
                 std::cout << "Inserted random record: ";

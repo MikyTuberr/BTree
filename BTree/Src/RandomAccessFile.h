@@ -40,17 +40,32 @@ private:
 	std::fstream file;
 };
 
+
 template<typename Record>
 inline std::vector<Record> RandomAccessFile::ReadRecords(const std::streampos& cursor, const std::ios_base::seekdir& direction,
 	const std::size_t& numberOfRecordsToRead)
 {
+	if (numberOfRecordsToRead == 0) {
+		std::cerr << "ReadRecords: No records to read.\n";
+		return {};
+	}
+
 	file.seekg(cursor, direction);
+	if (!file.good()) {
+		std::cerr << "ReadRecords: Failed to seek to the desired position.\n";
+		return {};
+	}
 
 	std::vector<Record> records(numberOfRecordsToRead);
 	std::vector<char> buffer(numberOfRecordsToRead * sizeof(Record));
 
 	if (!this->readBuffer(buffer, buffer.size())) {
-		std::cerr << "Error while reading records!\n";
+		std::cerr << "ReadRecords: Error while reading records!\n";
+		return {};
+	}
+
+	if (buffer.size() != numberOfRecordsToRead * sizeof(Record)) {
+		std::cerr << "ReadRecords: Buffer size mismatch!\n";
 		return {};
 	}
 
@@ -59,16 +74,25 @@ inline std::vector<Record> RandomAccessFile::ReadRecords(const std::streampos& c
 }
 
 template<typename Record, typename Param>
-inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::ReadRecords(const std::streampos& cursor, const std::ios_base::seekdir& direction, 
+inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::ReadRecords(const std::streampos& cursor, const std::ios_base::seekdir& direction,
 	const std::size_t& numberOfRecordsToRead, const std::size_t& numberOfParamsToRead)
 {
+	if (numberOfRecordsToRead == 0 && numberOfParamsToRead == 0) {
+		std::cerr << "ReadRecords: No records or parameters to read.\n";
+		return { {}, {} };
+	}
+
 	file.seekg(cursor, direction);
+	if (!file.good()) {
+		std::cerr << "ReadRecords: Failed to seek to the desired position.\n";
+		return { {}, {} };
+	}
 
 	std::vector<Param> params(numberOfParamsToRead);
 	std::vector<char> paramBuffer(numberOfParamsToRead * sizeof(Param));
 
 	if (!this->readBuffer(paramBuffer, paramBuffer.size())) {
-		std::cerr << "Error while reading parameters!\n";
+		std::cerr << "ReadRecords: Error while reading parameters!\n";
 		return { {}, {} };
 	}
 
@@ -78,7 +102,7 @@ inline std::pair<std::vector<Record>, std::vector<Param>> RandomAccessFile::Read
 	std::vector<char> recordBuffer(numberOfRecordsToRead * sizeof(Record));
 
 	if (!this->readBuffer(recordBuffer, recordBuffer.size())) {
-		std::cerr << "Error while reading records!\n";
+		std::cerr << "ReadRecords: Error while reading records!\n";
 		return { {}, {} };
 	}
 
@@ -97,22 +121,35 @@ template <typename Record, typename Param>
 inline bool RandomAccessFile::WriteRecords(const std::vector<Record>& records, const std::streampos& cursor, const std::ios_base::seekdir& direction,
 	const std::vector<Param>& params)
 {
+	if (records.empty() && params.empty()) {
+		std::cerr << "WriteRecords: No records or parameters to write.\n";
+		return false;
+	}
+
 	file.seekp(cursor, direction);
+	if (!file.good()) {
+		std::cerr << "WriteRecords: Failed to seek to the desired position.\n";
+		return false;
+	}
 
 	if (!params.empty()) {
 		std::vector<char> paramBuffer(params.size() * sizeof(Param));
 		std::memcpy(paramBuffer.data(), params.data(), paramBuffer.size());
+
 		if (!this->writeBuffer(paramBuffer)) {
-			std::cerr << "Error while writing parameters!\n";
+			std::cerr << "WriteRecords: Error while writing parameters!\n";
 			return false;
 		}
 	}
 
-	std::vector<char> recordBuffer(records.size() * sizeof(Record));
-	std::memcpy(recordBuffer.data(), records.data(), recordBuffer.size());
-	if (!this->writeBuffer(recordBuffer)) {
-		std::cerr << "Error while writing records!\n";
-		return false;
+	if (!records.empty()) {
+		std::vector<char> recordBuffer(records.size() * sizeof(Record));
+		std::memcpy(recordBuffer.data(), records.data(), recordBuffer.size());
+
+		if (!this->writeBuffer(recordBuffer)) {
+			std::cerr << "WriteRecords: Error while writing records!\n";
+			return false;
+		}
 	}
 
 	return true;

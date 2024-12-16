@@ -305,11 +305,13 @@ bool BTree::TryCompensation(TreePage* currentPage, TreeRecord recordToInsert)
     TreePage* siblingPage = nullptr;
 
     for (const auto& sibli : siblings) {
-        siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
+        if (sibli.siblingNumber != NULLPTR) {
+            siblingPage = treePageManager.ReadPageWithCache(sibli.siblingNumber);
 
-        if (!siblingPage->isOverflow()) {
-            sibling = sibli;
-            break;
+            if (!siblingPage->isOverflow()) {
+                sibling = sibli;
+                break;
+            }
         }
     }
 
