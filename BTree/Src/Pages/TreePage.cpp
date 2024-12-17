@@ -18,25 +18,9 @@ bool TreePage::InsertRecord(const TreeRecord treeRecord)
 
 TreeRecord TreePage::FindRecordById(std::size_t id)
 {
-    int left = 0;
-    int right = int(records.size() - 1);
-
-    while (left <= right)
-    {
-        int mid = left + (right - left) / 2;
-        std::size_t midId = records[mid].GetId();
-
-        if (midId == id)
-        {
-            return records[mid];
-        }
-        else if (midId < id)
-        {
-            left = mid + 1;
-        }
-        else
-        {
-            right = mid - 1;
+    for (int i = 0; i < this->records.size(); i++) {
+        if (this->records[i].GetId() == id) {
+            return this->records[i];
         }
     }
 

@@ -121,7 +121,10 @@ DiskRecord BTree::SearchRecord(std::size_t recordId)
             DiskPage diskPage = this->diskPageManager.ReadPage(foundRecord.GetDiskPageNumber());
             DiskRecord* diskRecord = diskPage.FindRecordById(foundRecord.GetId());
             PrintIOCounters("SEARCH");
-            return *diskRecord;
+            if (diskRecord != nullptr) {
+                return *diskRecord;
+            }
+            return DiskRecord();
         }
 
         std::size_t nextPageNumber = NULLPTR;

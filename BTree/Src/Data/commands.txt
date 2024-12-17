@@ -1,11 +1,11 @@
 insert -s 1 10 20 30
 insert -s 2 15 25 35
-insert -s 3 20 30 40
+insert -r 3
 search 1
 search 4
 update 1 11 21 31
 delete 2
-insert -s 4 50 60 70
-search 2
-delete 5
-update 3 22 32 42
+insert -s 3 20 30 40
+print -t
+print -d
+print -c
